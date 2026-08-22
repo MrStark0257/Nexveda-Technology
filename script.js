@@ -503,32 +503,33 @@ if (heroFrameEl) {
 }
 
 /* ==========================================================================
-   SANCHIT SHARMA BIO POP-UP MODAL (CS ENGINEER & GRAPHIC DESIGNER)
+   SANCHIT SHARMA BIO POP-UP MODAL (AI GRAPHIC DESIGNER & FRONTEND WEB DESIGNER)
    ========================================================================== */
 const sanchitProfileData = {
   name: "SANCHIT SHARMA",
-  role: "COMPUTER SCIENCE ENGINEER & GRAPHIC DESIGNER",
-  location: "Kullu, Himachal Pradesh",
+  role: "AI GRAPHIC DESIGNER × FRONTEND WEB DESIGNER",
+  location: "Kullu, Himachal Pradesh, India",
   phone: "+91 8988113310",
   email: "sanchitsharma217@gmail.com",
-  portfolioDriveUrl: "https://drive.google.com/drive/folders/1TXFO2RcOHy6ZZeLkG_eoywY4tv8XvkxY?usp=drive_link",
+  portfolioWebUrl: "https://sanchitsharma217-arch.github.io/Sanchit-Portfolio/",
   avatarUrl: "assets/images/sanchit-sharma.jpg",
-  summary: "Detail-oriented Computer Science Engineering Graduate and creative Graphic Designer specializing in visual communication, branding, and high-impact graphic design using Adobe Photoshop. Experienced in crafting high-converting YouTube thumbnails, promotional banners, posters, and social media assets. Combines technical problem-solving with dynamic visual execution to deliver clean, modern, and brand-aligned assets.",
-  skillsDesign: ["Adobe Photoshop", "Visual Branding", "YouTube Thumbnail Design", "Banner & Poster Design", "Typography", "Social Media Creatives"],
-  skillsTech: ["Computer Science Fundamentals", "Internet Research", "Microsoft Office", "Creative Problem Solving", "Team Collaboration"],
+  summary: "Creative designer working at the intersection of AI, graphic design, and frontend development. Experienced with AI-generated visuals, Photoshop, thumbnails, and web interfaces, with a focus on original visual concepts and digital experiences. Constantly learning, experimenting, and building across design and web.",
+  skillsDesign: ["Photoshop (Compositing & Retouching)", "AI Asset Collection (Generative Artwork)", "YouTube Thumbnail Design", "Visual Branding & Storytelling", "Poster Artwork & Image Manipulation"],
+  skillsTech: ["Frontend Web Design", "HTML5 & CSS3", "Dynamic Scroll Animations", "Responsive Interfaces", "Web Graphics Optimization"],
   projects: [
-    { title: "YouTube Gaming Media", desc: "Designed customized, high-CTR (click-through rate) thumbnails and channel branding assets tailored for competitive gaming content." },
-    { title: "Commercial & Business Branding", desc: "Created high-impact promotional posters, print graphics, and banners for regional travel agencies and local businesses to boost market engagement." },
-    { title: "Digital Marketing Content", desc: "Developed cohesive social media marketing campaigns focusing on color psychology, composition, and visual hierarchy." }
+    { title: "Havenix — Architecture Studio Website", desc: "Frontend web project featuring a live website and modern interactive web experience." },
+    { title: "Photoshop Artworks & Compositing", desc: "Digital image retouching, photo compositing, poster artwork, creative visual storytelling, and image manipulation." },
+    { title: "AI Asset Collection & Generative Art", desc: "AI-generated visuals, 3D conceptual assets, sci-fi renders, and custom generative artwork for digital media." },
+    { title: "YouTube Thumbnails & Content Branding", desc: "High-CTR gaming and tech thumbnails, content branding, and visual hooks designed for strong click-through potential." }
   ],
   education: {
-    degree: "B.Tech – Computer Science",
+    degree: "Bachelor of Technology (B.Tech) in Computer Science Engineering",
     college: "Indo Global College of Engineering",
     graduated: "July 2025",
-    cgpa: "7.0 / 10"
+    cgpa: "7.0 / 10.0"
   },
-  strengths: ["Creative Problem Solving", "Fast Learner", "Attention to Detail", "Adaptability"],
-  languages: ["English (Professional)", "Hindi (Native)"]
+  strengths: ["Creative Problem Solving", "Visual Storytelling", "Attention to Detail", "Client Collaboration", "Adaptability"],
+  languages: ["English (Professional Working)", "Hindi (Native Speaker)"]
 };
 
 const teamModal = document.getElementById('teamModal');
@@ -589,16 +590,18 @@ function openSanchitModal() {
       </div>
     </div>
 
-    <!-- Live Google Drive Portfolio Showcase Banner -->
+    <!-- Live Official Web Portfolio Showcase Banner -->
     <div class="modal-drive-banner">
       <div class="drive-banner-info">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
         </svg>
-        <span><strong>Live Design Portfolio:</strong> Explore YouTube Thumbnails, Banners &amp; Photoshop Projects</span>
+        <span><strong>Live Web &amp; Design Portfolio:</strong> Explore Interactive Web Projects, AI Visuals &amp; Artworks</span>
       </div>
-      <a href="${data.portfolioDriveUrl}" target="_blank" rel="noopener" class="btn-drive-link">
-        <span>Open Drive Portfolio</span>
+      <a href="${data.portfolioWebUrl}" target="_blank" rel="noopener" class="btn-drive-link">
+        <span>Visit Web Portfolio</span>
       </a>
     </div>
 
