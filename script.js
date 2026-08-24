@@ -848,7 +848,7 @@ const kingshukProfileData = {
   location: "Quatre Bornes, Mauritius • KIIT Odisha",
   phone: "+230 58636016",
   email: "kingshuk.chatterjee770@gmail.com",
-  resumePdfUrl: "assets/resumes/kingshuk-chatterjee-resume.pdf",
+  portfolioWebUrl: "https://kingshukchatterjee.in/",
   avatarUrl: "assets/images/kingshuk-chatterjee.jpg",
   summary: "Software Developer & Machine Learning Engineer specializing in full-stack web platforms, Physics-Informed Neural Networks (PINNs), and high-performance AVX2 C++/CUDA GPU systems. Experienced in developing scalable React & Python education platforms, edge AI platforms, and real-time distributed loggers.",
   skillsDesign: ["Figma UX/UI", "System Architecture Design", "Web Infrastructure", "Technical Documentation"],
@@ -952,19 +952,18 @@ function openKingshukModal() {
       </div>
     </div>
 
-    <!-- Official PDF Resume Download Banner -->
+    <!-- Live Official Web Portfolio Showcase Banner -->
     <div class="modal-drive-banner">
       <div class="drive-banner-info">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-          <line x1="12" y1="18" x2="12" y2="12"></line>
-          <polyline points="9 15 12 18 15 15"></polyline>
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"></path>
         </svg>
-        <span><strong>Official Resume Document:</strong> Download Kingshuk Chatterjee's complete PDF CV</span>
+        <span><strong>Live Official Web Portfolio:</strong> Explore Kingshuk Chatterjee's full interactive portfolio website & project archive</span>
       </div>
-      <a href="${data.resumePdfUrl}" target="_blank" download class="btn-drive-link">
-        <span>Download PDF Resume</span>
+      <a href="${data.portfolioWebUrl}" target="_blank" rel="noopener" class="btn-drive-link">
+        <span>Visit Live Portfolio ↗</span>
       </a>
     </div>
 

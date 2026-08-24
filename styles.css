@@ -1383,6 +1383,9 @@ body.light-theme .glass-card {
 .team-card {
   padding: 1.2rem;
   border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .team-card:hover {
@@ -1427,6 +1430,12 @@ body.light-theme .glass-card {
   text-align: center;
 }
 
+.team-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
 .team-info h3 {
   font-family: 'Outfit', sans-serif;
   font-size: 1.2rem;
@@ -1440,6 +1449,7 @@ body.light-theme .glass-card {
   font-size: 0.86rem;
   line-height: 1.5;
   margin: 0 0 0.8rem;
+  flex-grow: 1;
 }
 
 .team-socials {
@@ -1472,7 +1482,7 @@ body.light-theme .glass-card {
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 0.4rem;
+  margin-top: auto;
 }
 
 .team-bio-btn:hover {
