@@ -58,9 +58,6 @@ const progressBar = document.getElementById('scrollProgress');
 const scrollTopBtn = document.getElementById('scrollTop');
 const filterButtons = document.querySelectorAll('.filter-btn');
 const portfolioCards = document.querySelectorAll('.portfolio-card');
-const testimonials = document.querySelectorAll('.testimonial');
-const prevBtn = document.getElementById('prevTestimonial');
-const nextBtn = document.getElementById('nextTestimonial');
 const counters = document.querySelectorAll('[data-count]');
 const revealElements = document.querySelectorAll('.reveal');
 const contactForm = document.getElementById('contactForm');
@@ -331,68 +328,6 @@ filterButtons.forEach((button) => {
     });
   });
 });
-
-let testimonialIndex = 0;
-const testimonialCards = document.querySelectorAll('.testimonial-card');
-const testimonialTrack = document.querySelector('.testimonial-track');
-const testimonialDots = document.querySelectorAll('.t-dot');
-let autoSlideTimer = null;
-
-function showTestimonial(index) {
-  testimonialIndex = index;
-  if (testimonialTrack) {
-    testimonialTrack.style.transform = `translateX(-${index * 100}%)`;
-  }
-  testimonialCards.forEach((card, pos) => {
-    card.classList.toggle('active', pos === index);
-  });
-  testimonialDots.forEach((dot, pos) => {
-    dot.classList.toggle('active', pos === index);
-  });
-}
-
-function startAutoSlide() {
-  stopAutoSlide();
-  autoSlideTimer = setInterval(() => {
-    const nextIdx = (testimonialIndex + 1) % (testimonialCards.length || 1);
-    showTestimonial(nextIdx);
-  }, 5000);
-}
-
-function stopAutoSlide() {
-  if (autoSlideTimer) clearInterval(autoSlideTimer);
-}
-
-if (prevBtn && nextBtn && testimonialCards.length > 0) {
-  prevBtn.addEventListener('click', () => {
-    const nextIdx = (testimonialIndex - 1 + testimonialCards.length) % testimonialCards.length;
-    showTestimonial(nextIdx);
-    startAutoSlide();
-  });
-
-  nextBtn.addEventListener('click', () => {
-    const nextIdx = (testimonialIndex + 1) % testimonialCards.length;
-    showTestimonial(nextIdx);
-    startAutoSlide();
-  });
-
-  testimonialDots.forEach((dot) => {
-    dot.addEventListener('click', () => {
-      const idx = Number(dot.dataset.index);
-      showTestimonial(idx);
-      startAutoSlide();
-    });
-  });
-
-  const showcaseContainer = document.querySelector('.testimonial-showcase');
-  if (showcaseContainer) {
-    showcaseContainer.addEventListener('mouseenter', stopAutoSlide);
-    showcaseContainer.addEventListener('mouseleave', startAutoSlide);
-  }
-
-  showTestimonial(0);
-  startAutoSlide();
-}
 
 const animateCounter = (element) => {
   const target = Number(element.dataset.count);
