@@ -198,10 +198,10 @@ Visit [http://localhost:8080](http://localhost:8080) to interact with the applic
 
 ## 👥 Nexveda Technologies Team
 
-- **Kingshuk Chatterjee** — *Founder & Lead Architect*
-- **Sanchit Sharma** — *Co-Founder & Full-Stack Engineer*
-- **Kalyan Kumar Paul** — *Lead Designer & UI/UX Specialist*
-- **Rushabh Shah** — *Core Engineer & System Architect*
+- **Meet Pavagadhi** — *Founder & Lead Architect / Web Developer & 3D Animator*
+- **Sanchit Sharma** — *AI Graphic Designer & Frontend Web Designer*
+- **Kingshuk Chatterjee** — *Software Developer & ML Engineer*
+- **Ayush Ranjan** — *Software Engineer & Full Stack Developer*
 
 ---
 
