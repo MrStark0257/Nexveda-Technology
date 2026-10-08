@@ -278,16 +278,71 @@ window.addEventListener('scroll', () => {
   }
 }, { passive: true });
 
+const navBackdrop = document.getElementById('navBackdrop');
+
+function closeMobileMenu() {
+  if (!navLinks) return;
+  navLinks.classList.remove('open');
+  if (menuToggle) {
+    menuToggle.classList.remove('active');
+    menuToggle.setAttribute('aria-expanded', 'false');
+  }
+  if (navBackdrop) navBackdrop.classList.remove('open');
+  document.body.classList.remove('menu-open');
+}
+
+function openMobileMenu() {
+  if (!navLinks) return;
+  navLinks.classList.add('open');
+  if (menuToggle) {
+    menuToggle.classList.add('active');
+    menuToggle.setAttribute('aria-expanded', 'true');
+  }
+  if (navBackdrop) navBackdrop.classList.add('open');
+  document.body.classList.add('menu-open');
+}
+
 if (menuToggle && navLinks) {
-  menuToggle.addEventListener('click', () => {
-    const isOpen = navLinks.classList.toggle('open');
-    menuToggle.setAttribute('aria-expanded', String(isOpen));
+  menuToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (navLinks.classList.contains('open')) {
+      closeMobileMenu();
+    } else {
+      openMobileMenu();
+    }
   });
 
   navLinks.querySelectorAll('a').forEach((link) => {
-    link.addEventListener('click', () => navLinks.classList.remove('open'));
+    link.addEventListener('click', () => closeMobileMenu());
+  });
+
+  if (navBackdrop) {
+    navBackdrop.addEventListener('click', closeMobileMenu);
+  }
+
+  document.addEventListener('click', (e) => {
+    if (navLinks.classList.contains('open') && !navLinks.contains(e.target) && !menuToggle.contains(e.target)) {
+      closeMobileMenu();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && navLinks.classList.contains('open')) {
+      closeMobileMenu();
+    }
   });
 }
+
+// Touch flip support for process cards
+const processCards = document.querySelectorAll('.process-card.flip-card');
+processCards.forEach((card) => {
+  card.addEventListener('click', (e) => {
+    // Only toggle on touch/mobile or when card itself is clicked
+    if (window.innerWidth <= 992 || ('ontouchstart' in window) || navigator.maxTouchPoints > 0) {
+      card.classList.toggle('flipped');
+    }
+  });
+});
 
 if (scrollTopBtn) {
   scrollTopBtn.addEventListener('click', () => {

@@ -730,32 +730,139 @@ body.light-theme .scroll-track {
   100% { transform: translateY(260%); opacity: 0; }
 }
 
+/* ==========================================================================
+   MOBILE & TABLET DRAWER NAVIGATION
+   ========================================================================== */
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 998;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-backdrop.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+body.menu-open {
+  overflow: hidden;
+}
+
+.mobile-drawer-cta {
+  display: none !important;
+}
+
 @media (max-width: 992px) {
   .nav-links {
     position: fixed;
-    top: 4.5rem;
-    right: 1.5rem;
-    width: 240px;
-    background: rgba(7, 13, 25, 0.96);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
-    padding: 1.5rem;
+    top: 0;
+    right: 0;
+    width: min(320px, 85vw);
+    height: 100vh;
+    height: 100dvh;
+    background: linear-gradient(180deg, rgba(8, 14, 30, 0.98) 0%, rgba(2, 6, 23, 0.99) 100%);
+    border-left: 1px solid rgba(56, 189, 248, 0.25);
+    box-shadow: -20px 0 50px rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    padding: 5.5rem 1.8rem 2.5rem;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 1.2rem;
-    transform: translateY(-20px) scale(0.95);
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .nav-links.open {
-    transform: translateY(0) scale(1);
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 1rem;
+    transform: translateX(100%);
     opacity: 1;
+    pointer-events: none;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 999;
+    overflow-y: auto;
+  }
+
+  .nav-links.open {
+    transform: translateX(0);
     pointer-events: auto;
   }
-  .menu-toggle { display: block; }
+
+  .nav-links a {
+    font-size: 1.05rem;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    color: #e2e8f0;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+  }
+
+  .nav-links a:hover {
+    background: rgba(56, 189, 248, 0.12);
+    border-color: rgba(56, 189, 248, 0.25);
+    color: #38bdf8;
+    transform: translateX(4px);
+  }
+
+  .mobile-drawer-cta {
+    display: inline-flex !important;
+    margin-top: 1.2rem;
+    justify-content: center;
+    text-align: center;
+    padding: 0.85rem 1.4rem !important;
+  }
+
+  .menu-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+    z-index: 1001;
+    position: relative;
+    transition: all 0.25s ease;
+  }
+
+  .menu-toggle:hover {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: rgba(56, 189, 248, 0.4);
+  }
+
+  .menu-toggle span {
+    width: 20px;
+    height: 2px;
+    background: #ffffff;
+    display: block;
+    margin: 2.5px 0;
+    border-radius: 2px;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .menu-toggle.active span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+
+  .menu-toggle.active span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
 }
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -4648,3 +4755,448 @@ section,
 }
 
 
+
+
+/* ==========================================================================
+   COMPREHENSIVE RESPONSIVE DESIGN SYSTEM (ALL VIEWPORTS & DEVICES)
+   ========================================================================== */
+
+/* 1. Global Touch, Cursor & Viewport Stability */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  position: relative;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Ensure cursor elements never flash or show on touch devices */
+.custom-cursor-dot,
+.custom-cursor-ring {
+  display: none !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .custom-cursor-dot,
+  .custom-cursor-ring {
+    display: block !important;
+  }
+}
+
+/* Responsive Image and Media Safeguards */
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 2. Breakpoint: Large Tablets & Laptops (max-width: 1100px) */
+@media (max-width: 1100px) {
+  .team-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.5rem !important;
+  }
+}
+
+/* 3. Breakpoint: Standard Tablets (max-width: 992px) */
+@media (max-width: 992px) {
+  .section {
+    padding: 5rem 0;
+  }
+
+  .section-heading {
+    margin-bottom: 2rem;
+  }
+
+  .section-heading h2 {
+    font-size: clamp(2rem, 5vw, 2.8rem);
+  }
+
+  /* Hero Section */
+  .hero {
+    padding: 7rem 0 4.5rem;
+    min-height: auto;
+  }
+
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2.5rem !important;
+  }
+
+  .hero-content {
+    max-width: 100% !important;
+  }
+
+  .hero-title {
+    font-size: clamp(2.4rem, 6.5vw, 4.2rem);
+  }
+
+  .hero-visual-cards {
+    align-items: stretch !important;
+    width: 100% !important;
+  }
+
+  .glass-card-float {
+    max-width: 100% !important;
+  }
+
+  .card-launches {
+    margin-right: 0 !important;
+  }
+
+  /* About Section Grid Fix */
+  .about-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+
+  /* Founder Section Grid Fix */
+  .founder-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2.5rem !important;
+    text-align: center;
+  }
+
+  .founder-visual {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 420px;
+    min-height: auto !important;
+  }
+
+  .founder-skills-chips {
+    justify-content: center !important;
+  }
+
+  .founder-social-links {
+    justify-content: center !important;
+  }
+
+  /* Services & Portfolio & Process Grids */
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.4rem !important;
+  }
+
+  .portfolio-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.4rem !important;
+  }
+
+  .process-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.4rem !important;
+  }
+
+  /* Contact Section Grid */
+  .contact-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2.5rem !important;
+  }
+
+  /* Footer Grid */
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 2.2rem !important;
+  }
+
+  /* Ambient Glows scaling */
+  .glow-cyan-ambient,
+  .glow-magenta-ambient {
+    width: 400px !important;
+    height: 400px !important;
+    opacity: 0.6;
+  }
+}
+
+/* 4. Breakpoint: Small Tablets & Large Phones (max-width: 768px) */
+@media (max-width: 768px) {
+  .section {
+    padding: 4rem 0 !important;
+  }
+
+  .container {
+    width: min(100% - 2rem, 720px) !important;
+  }
+
+  .hero {
+    padding: 6rem 0 3.5rem !important;
+  }
+
+  .hero-scroll {
+    display: none !important;
+  }
+
+  .hero-actions {
+    gap: 0.9rem;
+  }
+
+  .btn-primary-pill,
+  .btn-secondary-pill {
+    padding: 0.85rem 1.6rem;
+    font-size: 0.94rem;
+  }
+
+  .editorial-spotlight {
+    min-height: auto;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.2rem !important;
+  }
+
+  .stat-card {
+    padding: 1.8rem 1.2rem !important;
+  }
+
+  .stat-card strong {
+    font-size: clamp(2.2rem, 5.5vw, 2.8rem) !important;
+  }
+
+  .team-modal-container {
+    width: 95% !important;
+    max-height: 88vh !important;
+    max-height: 88dvh !important;
+    padding: 1.8rem 1.4rem !important;
+  }
+
+  .case-modal-box {
+    width: 95% !important;
+    padding: 1.8rem 1.4rem !important;
+  }
+
+  .floating-actions {
+    bottom: 1.4rem !important;
+    right: 1.2rem !important;
+  }
+
+  .scroll-top {
+    right: 1.2rem !important;
+    bottom: 5.2rem !important;
+  }
+}
+
+/* 5. Breakpoint: Standard Mobile Phones (max-width: 600px) */
+@media (max-width: 600px) {
+  .section {
+    padding: 3.2rem 0 !important;
+  }
+
+  .container {
+    width: min(100% - 1.5rem, 540px) !important;
+  }
+
+  .navbar {
+    padding: 0.85rem 0 !important;
+  }
+
+  .brand-logo-img {
+    height: 34px !important;
+  }
+
+  /* Compact button in topbar */
+  .btn-nav-primary {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* Hero Section */
+  .hero-title {
+    font-size: clamp(2.1rem, 7.8vw, 2.9rem) !important;
+    letter-spacing: -0.025em !important;
+    line-height: 1.1 !important;
+  }
+
+  .hero-description {
+    font-size: 0.98rem !important;
+    line-height: 1.6 !important;
+    margin-bottom: 2rem !important;
+  }
+
+  .hero-actions {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .btn-primary-pill,
+  .btn-secondary-pill {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  .glass-card-float {
+    padding: 1rem 1.2rem !important;
+  }
+
+  /* Single Column Stacks for Cards */
+  .services-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.2rem !important;
+  }
+
+  .service-card {
+    padding: 1.8rem 1.4rem !important;
+  }
+
+  .portfolio-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+
+  .portfolio-card img {
+    height: 200px !important;
+  }
+
+  .team-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+
+  .process-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+
+  .process-card-front,
+  .process-card-back {
+    padding: 1.8rem 1.4rem !important;
+  }
+
+  .about-features-row {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .about-main-card,
+  .values-card {
+    padding: 1.6rem 1.25rem !important;
+  }
+
+  /* Contact Form & Info */
+  .contact-form {
+    padding: 1.6rem 1.2rem !important;
+    border-radius: 20px !important;
+  }
+
+  .contact-details {
+    padding: 1.6rem 1.2rem !important;
+    border-radius: 20px !important;
+  }
+
+  .contact-detail-item {
+    padding: 0.85rem 1rem !important;
+    word-break: break-word !important;
+  }
+
+  .contact-detail-item a {
+    word-break: break-all !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Input zoom prevention on iOS (Must be at least 16px) */
+  .form-group input,
+  .form-group textarea {
+    font-size: 16px !important;
+    padding: 0.85rem 1rem !important;
+  }
+
+  /* Filter buttons horizontal scroll / wrap */
+  .filter-bar {
+    gap: 0.45rem !important;
+    margin-bottom: 2rem !important;
+  }
+
+  .filter-btn {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* Footer */
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+
+  .footer-bottom {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 0.8rem !important;
+    padding-top: 1.5rem !important;
+  }
+
+  /* Modals */
+  .team-modal-container,
+  .case-modal-box {
+    width: 94% !important;
+    padding: 1.5rem 1.1rem !important;
+    border-radius: 20px !important;
+  }
+
+  .modal-header-box {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 1rem !important;
+  }
+
+  .modal-contact-row {
+    justify-content: center !important;
+  }
+
+  .modal-drive-banner {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 0.8rem !important;
+  }
+
+  .btn-drive-link {
+    width: 100% !important;
+  }
+}
+
+/* 6. Breakpoint: Ultra-Compact Phones (max-width: 400px) */
+@media (max-width: 400px) {
+  .hero-title {
+    font-size: 1.95rem !important;
+  }
+
+  .badge-text {
+    font-size: 0.72rem !important;
+  }
+
+  .brand-logo-img {
+    height: 30px !important;
+  }
+
+  /* Hide navbar CTA to avoid header crowding on tiny screens */
+  .navbar .btn-nav-primary {
+    display: none !important;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .stat-card {
+    padding: 1.4rem 1rem !important;
+  }
+
+  .stat-card strong {
+    font-size: 2.2rem !important;
+  }
+
+  .founder-photo-img {
+    width: 160px !important;
+    height: 160px !important;
+  }
+
+  .founder-avatar-frame {
+    width: 160px !important;
+    height: 160px !important;
+  }
+}
