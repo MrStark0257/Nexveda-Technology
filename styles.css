@@ -4331,273 +4331,6 @@ img {
 }
 
 /* ==========================================================================
-   INTERACTIVE ESTIMATOR CALCULATOR
-   ========================================================================== */
-.estimator-section {
-  position: relative;
-}
-
-.estimator-grid {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 2rem;
-  padding: 2.5rem;
-  border-radius: 24px;
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 0 30px rgba(56, 189, 248, 0.05);
-}
-
-.estimator-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 1.8rem;
-}
-
-.estimator-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
-.estimator-label {
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #38bdf8;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.estimator-options-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.85rem;
-}
-
-.est-option-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.35rem;
-  padding: 1rem 1.2rem;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  color: #f8fafc;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.25s ease;
-}
-
-.est-option-btn:hover {
-  background: rgba(56, 189, 248, 0.08);
-  border-color: rgba(56, 189, 248, 0.3);
-  transform: translateY(-2px);
-}
-
-.est-option-btn.active {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: #38bdf8;
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
-}
-
-.opt-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #f8fafc;
-}
-
-.opt-price {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #38bdf8;
-}
-
-.estimator-speed-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.85rem;
-}
-
-.est-speed-btn {
-  padding: 0.85rem 1rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  color: #cbd5e1;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.est-speed-btn:hover {
-  border-color: rgba(168, 85, 247, 0.4);
-}
-
-.est-speed-btn.active {
-  background: rgba(168, 85, 247, 0.15);
-  border-color: #a855f7;
-  color: #f8fafc;
-  box-shadow: 0 0 16px rgba(168, 85, 247, 0.25);
-}
-
-.estimator-checkboxes {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-}
-
-.est-checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.7rem 1rem;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.est-checkbox-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
-.est-checkbox-item input {
-  display: none;
-}
-
-.checkbox-custom {
-  width: 18px;
-  height: 18px;
-  border-radius: 5px;
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.est-checkbox-item input:checked + .checkbox-custom {
-  background: #38bdf8;
-  border-color: #38bdf8;
-}
-
-.est-checkbox-item input:checked + .checkbox-custom::after {
-  content: '✓';
-  color: #0f172a;
-  font-size: 0.75rem;
-  font-weight: 900;
-}
-
-.feature-text {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #cbd5e1;
-}
-
-.estimator-summary-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 2rem;
-  border-radius: 18px;
-  background: radial-gradient(130% 100% at 50% 0%, rgba(56, 189, 248, 0.15) 0%, rgba(15, 23, 42, 0.9) 100%);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-}
-
-.summary-badge {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: #34d399;
-  background: rgba(52, 211, 153, 0.12);
-  padding: 0.25rem 0.65rem;
-  border-radius: 6px;
-  border: 1px solid rgba(52, 211, 153, 0.25);
-}
-
-.summary-header h3 {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: #f8fafc;
-  margin: 0.6rem 0 0;
-}
-
-.summary-price-box {
-  display: flex;
-  align-items: baseline;
-  gap: 0.3rem;
-  margin: 1.2rem 0;
-}
-
-.currency-symbol {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #38bdf8;
-}
-
-.price-val {
-  font-size: 3.2rem;
-  font-weight: 900;
-  font-family: 'Outfit', sans-serif;
-  color: #ffffff;
-  text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
-  transition: all 0.3s ease;
-}
-
-.price-approx {
-  font-size: 0.85rem;
-  color: #94a3b8;
-  font-weight: 600;
-}
-
-.summary-time-box {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  background: rgba(255, 255, 255, 0.04);
-  padding: 0.65rem 0.9rem;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  color: #cbd5e1;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 1rem;
-}
-
-.summary-time-box strong {
-  color: #38bdf8;
-}
-
-.summary-breakdown {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.82rem;
-  color: #94a3b8;
-  margin-bottom: 1.5rem;
-  border-top: 1px dashed rgba(255, 255, 255, 0.1);
-  padding-top: 0.8rem;
-}
-
-.breakdown-item {
-  display: flex;
-  justify-content: space-between;
-}
-
-.breakdown-item strong {
-  color: #f1f5f9;
-}
-
-/* ==========================================================================
    FLOATING QUICK ACTIONS WIDGET
    ========================================================================== */
 .floating-actions {
@@ -4630,10 +4363,6 @@ img {
 
 .float-whatsapp {
   background: #25D366;
-}
-
-.float-calculator {
-  background: linear-gradient(135deg, #38bdf8, #2563eb);
 }
 
 /* ==========================================================================
@@ -4701,14 +4430,7 @@ img {
   gap: 0.4rem;
 }
 
-@media (max-width: 900px) {
-  .estimator-grid {
-    grid-template-columns: 1fr;
-  }
-  .estimator-options-grid {
-    grid-template-columns: 1fr;
-  }
-}
+
 
 /* ==========================================================================
    INSTANTANEOUS SCROLL APPEARANCE (NO LAG OR DELAY)
@@ -4759,7 +4481,6 @@ section,
 .section,
 .hero,
 .process-section,
-.estimator-section,
 .testimonials-section,
 .tech-marquee-section,
 .contact-section,
@@ -4798,8 +4519,6 @@ section,
 .stat-card,
 .contact-form,
 .contact-details,
-.estimator-grid,
-.estimator-summary-card,
 .testimonial-showcase,
 .code-pipeline-window,
 .code-pipeline-footer,
@@ -4840,21 +4559,7 @@ section,
   transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
 }
 
-/* Estimator Option Cards Smooth Selection */
-.est-option-btn,
-.est-speed-btn {
-  border-radius: 16px !important;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
 
-.est-option-btn.active,
-.est-speed-btn.active {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.22) 0%, rgba(37, 99, 235, 0.38) 100%) !important;
-  border: 1px solid rgba(56, 189, 248, 0.75) !important;
-  border-radius: 16px !important;
-  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-  transform: translateY(-3px) scale(1.02) !important;
-}
 
 .btn:hover,
 .btn-primary-pill:hover,

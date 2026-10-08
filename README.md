@@ -36,7 +36,6 @@ The Nexveda Technologies platform is a high-performance, responsive corporate we
 - **⚡ GSAP & ScrollTrigger Micro-Animations**: Fluid section transitions, kinetic text reveals, 3D card tilts, and stagger effects built with **GreenSock (GSAP 3.12)**.
 - **🌓 Dynamic Theme Switcher**: Full Dark Mode and Light Mode support with persistent state stored in `localStorage`.
 - **🎯 Custom Cursor & Micro-Interactions**: Magnetic cursor ring, dot tracking, and interactive button hover states.
-- **📊 Interactive Project Cost Estimator**: Real-time project cost calculator letting prospective clients select project scope, deliverables, and timelines.
 - **👥 Dynamic Team Bios & Credential Modals**: Interactive modals detailing team members' technical proficiencies, live portfolio showcases, and project links.
 - **📬 Resilient Dual-Mode Contact System**:
   - **Full-Stack Mode**: Submits via REST API (`/api/contact`), validates inputs, logs submissions into SQLite or PostgreSQL, and triggers automated email notifications via SMTP (Gmail) or Resend API.
@@ -110,7 +109,7 @@ Create a `.env` file in the project root directory:
 
 ```env
 # Server Port
-PORT=8080
+PORT=3000
 
 # Database Configuration (sqlite or postgres)
 DB_TYPE=sqlite
