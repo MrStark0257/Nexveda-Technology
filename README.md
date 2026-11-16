@@ -17,7 +17,7 @@
 
 <br />
 
-[Live Demo](https://mrstark0257.github.io/MY-website/) • [Features](#-key-features) • [Tech Stack](#-technology-stack) • [Getting Started](#-getting-started) • [API Reference](#-api-reference)
+[Live Demo](https://sanchitsharma217-arch.github.io/Nexveda-Technology/) • [Features](#-key-features) • [Tech Stack](#-technology-stack) • [Getting Started](#-getting-started) • [API Reference](#-api-reference)
 
 ---
 
@@ -66,7 +66,7 @@ The Nexveda Technologies platform is a high-performance, responsive corporate we
 ## 📁 Project Architecture
 
 ```text
-MY-website/
+Nexveda-Technology/
 ├── index.html           # Main application landing page & layout
 ├── styles.css           # Design system tokens, glassmorphism, responsive styles
 ├── script.js            # Three.js 3D canvas, GSAP animations, Lenis, UI logic
@@ -95,8 +95,8 @@ Simply open `index.html` directly in your favorite modern browser, or launch usi
 
 #### 1. Clone the Repository
 ```bash
-git clone https://github.com/MrStark0257/MY-website.git
-cd MY-website
+git clone https://github.com/sanchitsharma217-arch/Nexveda-Technology.git
+cd Nexveda-Technology
 ```
 
 #### 2. Install Dependencies
@@ -199,8 +199,6 @@ Visit [http://localhost:8080](http://localhost:8080) to interact with the applic
 
 - **Meet Pavagadhi** — *Founder & Lead Architect / Web Developer & 3D Animator*
 - **Sanchit Sharma** — *AI Graphic Designer & Frontend Web Designer*
-- **Kingshuk Chatterjee** — *Software Developer & ML Engineer*
-- **Ayush Ranjan** — *Software Engineer & Full Stack Developer*
 
 ---
 
