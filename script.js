@@ -1,24 +1,29 @@
 /* ==========================================================================
    LENIS BUTTERY SMOOTH SCROLL ENGINE
    ========================================================================== */
-if (window.Lenis) {
-  window._lenis = new Lenis({
-    duration: 1.2,
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    orientation: 'vertical',
-    gestureOrientation: 'vertical',
-    smoothWheel: true,
-    wheelMultiplier: 1.1,
-    touchMultiplier: 2
-  });
+const isTouchDevice = window.matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window && window.innerWidth <= 1024);
 
-  function raf(time) {
-    window._lenis.raf(time);
+if (window.Lenis) {
+  // On mobile/touch devices, native hardware-accelerated momentum scrolling is smoother and battery-efficient
+  if (!isTouchDevice) {
+    window._lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1.1,
+      syncTouch: false
+    });
+
+    function raf(time) {
+      window._lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
     requestAnimationFrame(raf);
   }
-  requestAnimationFrame(raf);
 
-  // Smooth scroll for internal anchor links using Lenis
+  // Smooth scroll for internal anchor links using Lenis or native smooth scroll
   document.addEventListener('click', (e) => {
     const anchor = e.target.closest('a[href^="#"]');
     if (anchor) {
@@ -27,7 +32,11 @@ if (window.Lenis) {
         const target = document.querySelector(href);
         if (target) {
           e.preventDefault();
-          window._lenis.scrollTo(target, { offset: -80, duration: 1.2 });
+          if (window._lenis) {
+            window._lenis.scrollTo(target, { offset: -80, duration: 1.2 });
+          } else {
+            target.scrollIntoView({ behavior: 'smooth' });
+          }
         }
       }
     }
@@ -35,20 +44,22 @@ if (window.Lenis) {
 }
 
 /* ==========================================================================
-   MAGNETIC BUTTONS PHYSICS CHEAT CODE
+   MAGNETIC BUTTONS PHYSICS (DESKTOP ONLY)
    ========================================================================== */
-document.querySelectorAll('.btn, .btn-primary-pill, .btn-nav-primary, .float-btn, .est-option-btn').forEach((btn) => {
-  btn.addEventListener('mousemove', (e) => {
-    const rect = btn.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    btn.style.transform = `translate3d(${x * 0.3}px, ${y * 0.3}px, 0) scale(1.03)`;
-  });
+if (!isTouchDevice) {
+  document.querySelectorAll('.btn, .btn-primary-pill, .btn-nav-primary, .float-btn, .est-option-btn').forEach((btn) => {
+    btn.addEventListener('mousemove', (e) => {
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      btn.style.transform = `translate3d(${x * 0.3}px, ${y * 0.3}px, 0) scale(1.03)`;
+    });
 
-  btn.addEventListener('mouseleave', () => {
-    btn.style.transform = '';
+    btn.addEventListener('mouseleave', () => {
+      btn.style.transform = '';
+    });
   });
-});
+}
 
 const body = document.body;
 const header = document.querySelector('.site-header');
@@ -116,8 +127,9 @@ if (heroCanvas) {
     { start: 'rgba(255, 255, 255, ', end: 'rgba(56, 189, 248, ' }   // Pure White Highlight
   ];
 
-  // Create 100 stream fibers for silky 60 FPS performance
-  const fiberCount = 100;
+  // Stream fibers scaled for mobile vs desktop for optimal battery and 60 FPS
+  const isMobileScreen = window.innerWidth < 768;
+  const fiberCount = isMobileScreen ? 35 : 100;
   const fibers = [];
 
   for (let i = 0; i < fiberCount; i++) {
@@ -125,21 +137,21 @@ if (heroCanvas) {
     const isUltraThin = i % 3 === 0;
 
     fibers.push({
-      bandOffset: (Math.random() - 0.35) * 800,
+      bandOffset: (Math.random() - 0.35) * (isMobileScreen ? 450 : 800),
       progress: Math.random(),
-      length: isGlowBeam ? Math.random() * 950 + 750 : Math.random() * 550 + 320,
-      width: isGlowBeam ? Math.random() * 14 + 6 : (isUltraThin ? Math.random() * 1 + 0.5 : Math.random() * 3.5 + 1.5),
+      length: isGlowBeam ? (isMobileScreen ? 500 : 950) : (isMobileScreen ? 300 : 550),
+      width: isGlowBeam ? Math.random() * 10 + 4 : (isUltraThin ? Math.random() * 1 + 0.5 : Math.random() * 3 + 1.2),
       speed: Math.random() * 0.0022 + 0.0007,
-      opacity: isGlowBeam ? Math.random() * 0.24 + 0.1 : Math.random() * 0.65 + 0.22,
+      opacity: isGlowBeam ? Math.random() * 0.22 + 0.1 : Math.random() * 0.6 + 0.2,
       colors: colorPalette[Math.floor(Math.random() * colorPalette.length)],
       waveFreq: Math.random() * 0.004 + 0.002,
-      waveAmp: Math.random() * 18 + 6,
+      waveAmp: Math.random() * (isMobileScreen ? 12 : 18) + 5,
       phase: Math.random() * Math.PI * 2
     });
   }
 
   // Floating embers / particle sparks flowing along the stream
-  const sparkCount = 45;
+  const sparkCount = isMobileScreen ? 15 : 45;
   const sparks = [];
   for (let i = 0; i < sparkCount; i++) {
     sparks.push({
@@ -147,13 +159,24 @@ if (heroCanvas) {
       y: Math.random() * (height || window.innerHeight),
       vx: -(Math.random() * 1.2 + 0.4),
       vy: Math.random() * 1.2 + 0.4,
-      radius: Math.random() * 2.5 + 0.8,
-      alpha: Math.random() * 0.7 + 0.2,
+      radius: Math.random() * 2.2 + 0.7,
+      alpha: Math.random() * 0.65 + 0.2,
       color: colorPalette[Math.floor(Math.random() * colorPalette.length)].start
     });
   }
 
   let time = 0;
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (animFrameId) {
+        cancelAnimationFrame(animFrameId);
+        animFrameId = null;
+      }
+    } else if (isHeroVisible && !animFrameId) {
+      animFrameId = requestAnimationFrame(renderBeams);
+    }
+  });
 
   function renderBeams() {
     if (!isHeroVisible) {
@@ -378,9 +401,40 @@ filterButtons.forEach((button) => {
     button.classList.add('active');
     const filter = button.dataset.filter;
     document.querySelectorAll('.portfolio-card').forEach((card) => {
-      const show = filter === 'all' || card.dataset.category === filter;
-      card.style.display = show ? '' : 'none';
+      const role = card.dataset.designRole;
+      if (filter === 'all') {
+        // Show all standard cards and the master design card; hide sub design cards
+        card.style.display = role === 'sub' ? 'none' : '';
+      } else if (filter === 'design') {
+        // In design filter, hide the master card and reveal the 2 specialized cards
+        if (role === 'master') {
+          card.style.display = 'none';
+        } else if (role === 'sub') {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      } else {
+        // Standard categories
+        card.style.display = card.dataset.category === filter ? '' : 'none';
+      }
     });
+  });
+});
+
+// "Explore Work ↗" button on Master Branding Card triggers the Branding & Design filter tab
+document.querySelectorAll('.design-filter-trigger').forEach((btn) => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const designBtn = document.querySelector('.filter-btn[data-filter="design"]');
+    if (designBtn) {
+      designBtn.click();
+      const portfolioGrid = document.querySelector('.portfolio-grid');
+      if (portfolioGrid) {
+        portfolioGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
   });
 });
 
@@ -829,374 +883,6 @@ if (meetBioBtn) {
   meetBioBtn.addEventListener('click', openMeetModal);
 }
 
-/* ==========================================================================
-   KINGSHUK CHATTERJEE BIO POP-UP MODAL (SOFTWARE DEVELOPER & ML ENGINEER)
-   ========================================================================== */
-const kingshukProfileData = {
-  name: "KINGSHUK CHATTERJEE",
-  role: "SOFTWARE DEVELOPER & MACHINE LEARNING ENGINEER",
-  location: "Quatre Bornes, Mauritius • KIIT Odisha",
-  phone: "+230 58636016",
-  email: "kingshuk.chatterjee770@gmail.com",
-  portfolioWebUrl: "https://kingshukchatterjee.in/",
-  avatarUrl: "assets/images/kingshuk-chatterjee.jpg",
-  summary: "Software Developer & Machine Learning Engineer specializing in full-stack web platforms, Physics-Informed Neural Networks (PINNs), and high-performance AVX2 C++/CUDA GPU systems. Experienced in developing scalable React & Python education platforms, edge AI platforms, and real-time distributed loggers.",
-  skillsDesign: ["Figma UX/UI", "System Architecture Design", "Web Infrastructure", "Technical Documentation"],
-  skillsTech: ["Python", "JavaScript", "Rust", "C & C++", "SQL", "React.js & Node.js", "Flask & FastAPI", "PyTorch & TensorFlow", "MongoDB & PostgreSQL", "Supabase & Firebase", "AVX2 SIMD & CUDA Kernels", "OpenAI Triton"],
-  experience: [
-    { title: "Full Stack Developer (Part-time)", subtitle: "Nexveda Technologies • Jan 2026 – Present", desc: "Developed a full-stack education platform using React.js, Python, MongoDB, and PostgreSQL; engineered RESTful APIs for scalable frontend-backend integration." },
-    { title: "Frontend Developer (Freelance)", subtitle: "Ionic Design • Apr 2026", desc: "Delivered responsive web interfaces using HTML, CSS, and Python-based tooling." },
-    { title: "Network & Systems Intern", subtitle: "Indian Oil Corporation Ltd (IOCL) • Nov 2024 – Jan 2025", desc: "Worked with industrial networking infrastructure and Cisco networking protocols." }
-  ],
-  projects: [
-    { title: "OmniRay : AVX2 Deep RL Active SLAM Engine", desc: "Implemented a custom C++ AVX2 SIMD raycaster with 0.038ms scan times (79x faster than PyMunk) and CNN-MLP PPO agent with 95.1% drift reduction." },
-    { title: "Dynamic Gradient PINNs", desc: "Developed a ResSIREN-Fourier PINN with PCGrad achieving 32,700x forward inference speedup over OpenFOAM." },
-    { title: "Krishi Sahayak : AI Agricultural Platform", desc: "NIELIT Government-funded platform supporting 50+ active beta users with Flutter, FastAPI, and TFLite edge CNN disease detection." },
-    { title: "Sys Logger : Distributed Network Logger", desc: "NIELIT Government-funded distributed system monitoring 100+ active network endpoints in real time with PM2." }
-  ],
-  education: [
-    { degree: "B.Tech in Computer Science & Engineering", institution: "KIIT University, Bhubaneswar, Odisha", years: "2022 – 2026" }
-  ],
-  strengths: ["High-Performance C++/CUDA", "Deep RL & PINNs", "Full-Stack Web Engineering", "SIMD Optimization"],
-  languages: ["English (Professional)", "Hindi (Fluent)"]
-};
-
-const kingshukBioBtn = document.getElementById('kingshukBioBtn');
-
-function openKingshukModal() {
-  const data = kingshukProfileData;
-
-  const skillsDesignHtml = data.skillsDesign.map(s => `<span class="modal-chip modal-chip-design">${s}</span>`).join('');
-  const skillsTechHtml = data.skillsTech.map(s => `<span class="modal-chip">${s}</span>`).join('');
-  
-  const expHtml = data.experience.map(e => `
-    <div class="modal-project-item">
-      <h6>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-        </svg>
-        ${e.title}
-        <span style="font-size:0.75rem; font-weight:600; color:#38bdf8; margin-left:auto;">${e.subtitle}</span>
-      </h6>
-      <p>${e.desc}</p>
-    </div>
-  `).join('');
-
-  const projectsHtml = data.projects.map(p => `
-    <div class="modal-project-item">
-      <h6>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <polyline points="12 6 12 12 16 14"></polyline>
-        </svg>
-        ${p.title}
-      </h6>
-      <p>${p.desc}</p>
-    </div>
-  `).join('');
-
-  const eduHtml = data.education.map(ed => `
-    <div class="modal-edu-card" style="margin-bottom:0.6rem;">
-      <div class="modal-edu-info">
-        <h6>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
-          ${ed.degree}
-        </h6>
-        <span>${ed.institution}</span>
-      </div>
-      <span class="modal-edu-badge">${ed.years}</span>
-    </div>
-  `).join('');
-
-  const strengthsHtml = data.strengths.map(s => `
-    <span class="modal-chip modal-chip-strength">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-      ${s}
-    </span>
-  `).join('');
-
-  const languagesHtml = data.languages.join(' • ');
-
-  teamModalContent.innerHTML = `
-    <div class="modal-header-box">
-      <div class="modal-avatar-frame">
-        <img src="${data.avatarUrl}" alt="${data.name}" class="modal-avatar-img" />
-      </div>
-      <div class="modal-header-info">
-        <span class="modal-role-badge">${data.role}</span>
-        <h2>${data.name}</h2>
-        <div class="modal-contact-row">
-          <span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-            ${data.location}
-          </span>
-          <span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.42 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.54a16 16 0 0 0 6.29 6.29l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-            <a href="tel:${data.phone.replace(/[^0-9+]/g,'')}">${data.phone}</a>
-          </span>
-          <span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><polyline points="2,4 12,13 22,4"></polyline></svg>
-            <a href="mailto:${data.email}">${data.email}</a>
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Live Official Web Portfolio Showcase Banner -->
-    <div class="modal-drive-banner">
-      <div class="drive-banner-info">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="2" y1="12" x2="22" y2="12"></line>
-          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"></path>
-        </svg>
-        <span><strong>Live Official Web Portfolio:</strong> Explore Kingshuk Chatterjee's full interactive portfolio website & project archive</span>
-      </div>
-      <a href="${data.portfolioWebUrl}" target="_blank" rel="noopener" class="btn-drive-link">
-        <span>Visit Live Portfolio ↗</span>
-      </a>
-    </div>
-
-    <div class="modal-section-body">
-      <div>
-        <div class="modal-block-title">Profile &amp; Technical Summary</div>
-        <p class="modal-summary-text">${data.summary}</p>
-      </div>
-
-      <div class="modal-skills-box">
-        <div class="modal-block-title">Technical Skills &amp; AI Frameworks</div>
-        <div class="modal-skills-group">
-          <h5>FULL STACK &amp; ML SYSTEMS</h5>
-          <div class="modal-chips-wrap">${skillsTechHtml}</div>
-        </div>
-        <div class="modal-skills-group">
-          <h5>SYSTEM ARCHITECTURE &amp; UI</h5>
-          <div class="modal-chips-wrap">${skillsDesignHtml}</div>
-        </div>
-      </div>
-
-      <div>
-        <div class="modal-block-title">Professional Experience</div>
-        ${expHtml}
-      </div>
-
-      <div>
-        <div class="modal-block-title">Selected High-Performance ML &amp; Systems Projects</div>
-        ${projectsHtml}
-      </div>
-
-      <div>
-        <div class="modal-block-title">Education</div>
-        ${eduHtml}
-      </div>
-
-      <div>
-        <div class="modal-block-title">Core Competencies &amp; Languages</div>
-        <div class="modal-chips-wrap" style="margin-bottom:0.8rem;">${strengthsHtml}</div>
-        <div class="modal-languages-row">
-          <strong>Languages:</strong> ${languagesHtml}
-        </div>
-      </div>
-    </div>
-  `;
-
-  if (teamModal) {
-    teamModal.classList.add('active');
-    teamModal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-    if (window._lenis) window._lenis.stop();
-  }
-}
-
-/* ==========================================================================
-   AYUSH RANJAN BIO POP-UP MODAL (SOFTWARE ENGINEER & FULL STACK DEVELOPER)
-   ========================================================================== */
-const ayushProfileData = {
-  name: "AYUSH RANJAN",
-  role: "SOFTWARE ENGINEER & FULL STACK DEVELOPER",
-  location: "Muzaffarpur, Bihar • KIIT Odisha",
-  phone: "+91 88252 01016",
-  email: "ranjanayush881@gmail.com",
-  resumePdfUrl: "assets/resumes/ayush-ranjan-resume.pdf",
-  avatarUrl: "assets/images/ayush-ranjan.jpg",
-  summary: "Software Engineer specializing in full-stack web platforms, database schema optimization (Supabase, PostgreSQL, MySQL), systems programming (Rust, C), and AI/ML model integration. Experienced in building responsive LLM chat interfaces, real-time distributed monitoring dashboards, and high-accuracy mobile AI applications.",
-  skillsDesign: ["UI/UX Strategy", "Figma Design", "Database Architecture", "System Telemetry"],
-  skillsTech: ["Python", "Java", "JavaScript", "TypeScript", "C", "Dart", "Rust", "SQL", "React.js", "Node.js", "Flutter", "Next.js", "TensorFlow", "PyTorch", "scikit-learn", "MySQL", "MongoDB", "Supabase", "PostgreSQL", "SQLite", "Docker", "Kubernetes", "Git", "REST APIs", "CI/CD", "Linux"],
-  experience: [
-    { title: "Tech Intern", subtitle: "Yellow Slice • May 2025 – Dec 2025", desc: "Designed and normalized Supabase database schema for Holivus app, reducing redundant records by 40% and boosting data retrieval speed. Implemented modular UI components in Next.js and Flutter leading to a 30% gain in application performance." },
-    { title: "Frontend Developer Intern", subtitle: "Tecosys • Jun 2024 – May 2025", desc: "Engineered a fully responsive LLM-integrated chat interface using React.js. Integrated RESTful APIs with optimized asynchronous data flow, improving response speed by 25%. Directed a 4-member development team." }
-  ],
-  projects: [
-    { title: "Apex OS - Neural-Native Operating System", desc: "Building a research-grade OS in Rust with RL-based CPU scheduling and neural flight control (SAS) for swarm robotics; swarm hive-mind architecture and fail-secure TPM 2.0 hardening." },
-    { title: "Sys Logger - Real-Time System Monitoring", desc: "Full-stack distributed systems dashboard providing real-time CPU, RAM, GPU and network telemetry with Flask API, Next.js frontend, Docker containerization, deployed at NIELIT Bhubaneswar." },
-    { title: "Krishi-Sahayogi - Smart Farming App", desc: "Full-stack mobile app in Flutter with MobileNetV2 AI model achieving 98.3% accuracy for 50+ crops, weather integration, and live mandi data." }
-  ],
-  education: [
-    { degree: "B.Tech in Computer Science & Engineering", institution: "KIIT University, Bhubaneswar, Odisha", years: "2022 – 2026" }
-  ],
-  strengths: ["Full-Stack Web Engineering", "Database Optimization", "Systems Programming (Rust/C)", "AI/ML & Mobile Integration"],
-  languages: ["English (Professional)", "Hindi (Native/Fluent)"]
-};
-
-const ayushBioBtn = document.getElementById('ayushBioBtn');
-
-function openAyushModal() {
-  const data = ayushProfileData;
-
-  const skillsDesignHtml = data.skillsDesign.map(s => `<span class="modal-chip modal-chip-design">${s}</span>`).join('');
-  const skillsTechHtml = data.skillsTech.map(s => `<span class="modal-chip">${s}</span>`).join('');
-  
-  const expHtml = data.experience.map(e => `
-    <div class="modal-project-item">
-      <h6>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-        </svg>
-        ${e.title}
-        <span style="font-size:0.75rem; font-weight:600; color:#38bdf8; margin-left:auto;">${e.subtitle}</span>
-      </h6>
-      <p>${e.desc}</p>
-    </div>
-  `).join('');
-
-  const projectsHtml = data.projects.map(p => `
-    <div class="modal-project-item">
-      <h6>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <polyline points="12 6 12 12 16 14"></polyline>
-        </svg>
-        ${p.title}
-      </h6>
-      <p>${p.desc}</p>
-    </div>
-  `).join('');
-
-  const eduHtml = data.education.map(ed => `
-    <div class="modal-edu-card" style="margin-bottom:0.6rem;">
-      <div class="modal-edu-info">
-        <h6>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
-          ${ed.degree}
-        </h6>
-        <span>${ed.institution}</span>
-      </div>
-      <span class="modal-edu-badge">${ed.years}</span>
-    </div>
-  `).join('');
-
-  const strengthsHtml = data.strengths.map(s => `
-    <span class="modal-chip modal-chip-strength">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-      ${s}
-    </span>
-  `).join('');
-
-  const languagesHtml = data.languages.join(' • ');
-
-  teamModalContent.innerHTML = `
-    <div class="modal-header-box">
-      <div class="modal-avatar-frame">
-        <img src="${data.avatarUrl}" alt="${data.name}" class="modal-avatar-img" />
-      </div>
-      <div class="modal-header-info">
-        <span class="modal-role-badge">${data.role}</span>
-        <h2>${data.name}</h2>
-        <div class="modal-contact-row">
-          <span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-            ${data.location}
-          </span>
-          <span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.42 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.54a16 16 0 0 0 6.29 6.29l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-            <a href="tel:${data.phone.replace(/[^0-9+]/g,'')}">${data.phone}</a>
-          </span>
-          <span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><polyline points="2,4 12,13 22,4"></polyline></svg>
-            <a href="mailto:${data.email}">${data.email}</a>
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Official PDF Resume Download Banner -->
-    <div class="modal-drive-banner">
-      <div class="drive-banner-info">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-          <line x1="12" y1="18" x2="12" y2="12"></line>
-          <polyline points="9 15 12 18 15 15"></polyline>
-        </svg>
-        <span><strong>Official Resume Document:</strong> Download Ayush Ranjan's complete PDF CV</span>
-      </div>
-      <a href="${data.resumePdfUrl}" target="_blank" download class="btn-drive-link">
-        <span>Download PDF Resume</span>
-      </a>
-    </div>
-
-    <div class="modal-section-body">
-      <div>
-        <div class="modal-block-title">Profile &amp; Technical Summary</div>
-        <p class="modal-summary-text">${data.summary}</p>
-      </div>
-
-      <div class="modal-skills-box">
-        <div class="modal-block-title">Technical Skills &amp; Frameworks</div>
-        <div class="modal-skills-group">
-          <h5>LANGUAGES &amp; FULL STACK</h5>
-          <div class="modal-chips-wrap">${skillsTechHtml}</div>
-        </div>
-        <div class="modal-skills-group">
-          <h5>SYSTEM ARCHITECTURE &amp; UX</h5>
-          <div class="modal-chips-wrap">${skillsDesignHtml}</div>
-        </div>
-      </div>
-
-      <div>
-        <div class="modal-block-title">Professional Experience</div>
-        ${expHtml}
-      </div>
-
-      <div>
-        <div class="modal-block-title">Selected Projects</div>
-        ${projectsHtml}
-      </div>
-
-      <div>
-        <div class="modal-block-title">Education</div>
-        ${eduHtml}
-      </div>
-
-      <div>
-        <div class="modal-block-title">Core Competencies &amp; Languages</div>
-        <div class="modal-chips-wrap" style="margin-bottom:0.8rem;">${strengthsHtml}</div>
-        <div class="modal-languages-row">
-          <strong>Languages:</strong> ${languagesHtml}
-        </div>
-      </div>
-    </div>
-  `;
-
-  if (teamModal) {
-    teamModal.classList.add('active');
-    teamModal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-    if (window._lenis) window._lenis.stop();
-  }
-}
-
-if (meetBioBtn) {
-  meetBioBtn.addEventListener('click', openMeetModal);
-}
-
-if (kingshukBioBtn) {
-  kingshukBioBtn.addEventListener('click', openKingshukModal);
-}
-
-if (ayushBioBtn) {
-  ayushBioBtn.addEventListener('click', openAyushModal);
-}
 
 if (teamModalOverlay) teamModalOverlay.addEventListener('click', closeTeamModal);
 if (teamModalClose) teamModalClose.addEventListener('click', closeTeamModal);
@@ -1207,93 +893,100 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ==========================================================================
-   INTERACTIVE CUSTOM GLOWING MAGNETIC CURSOR
+   INTERACTIVE CUSTOM GLOWING MAGNETIC CURSOR (DESKTOP ONLY)
    ========================================================================== */
 const cursorDot = document.getElementById('cursorDot');
 const cursorRing = document.getElementById('cursorRing');
 
-if (cursorDot && cursorRing && window.matchMedia('(hover: hover)').matches) {
-  let mouseX = -100, mouseY = -100;
-  let dotX = -100, dotY = -100;
-  let ringX = -100, ringY = -100;
+if (cursorDot && cursorRing) {
+  if (!isTouchDevice && window.matchMedia('(hover: hover)').matches) {
+    let mouseX = -100, mouseY = -100;
+    let dotX = -100, dotY = -100;
+    let ringX = -100, ringY = -100;
 
-  window.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  }, { passive: true });
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    }, { passive: true });
 
-  function renderCursor() {
-    dotX += (mouseX - dotX) * 0.5;
-    dotY += (mouseY - dotY) * 0.5;
-    ringX += (mouseX - ringX) * 0.18;
-    ringY += (mouseY - ringY) * 0.18;
+    function renderCursor() {
+      dotX += (mouseX - dotX) * 0.5;
+      dotY += (mouseY - dotY) * 0.5;
+      ringX += (mouseX - ringX) * 0.18;
+      ringY += (mouseY - ringY) * 0.18;
 
-    cursorDot.style.transform = `translate3d(${dotX}px, ${dotY}px, 0) translate(-50%, -50%)`;
-    cursorRing.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`;
+      cursorDot.style.transform = `translate3d(${dotX}px, ${dotY}px, 0) translate(-50%, -50%)`;
+      cursorRing.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`;
 
+      requestAnimationFrame(renderCursor);
+    }
     requestAnimationFrame(renderCursor);
+
+    const hoverables = document.querySelectorAll('a, button, input, textarea, select, label, .portfolio-card, .service-card, .process-card, .est-option-btn');
+    hoverables.forEach((el) => {
+      el.addEventListener('mouseenter', () => {
+        cursorDot.classList.add('hovering');
+        cursorRing.classList.add('hovering');
+      });
+      el.addEventListener('mouseleave', () => {
+        cursorDot.classList.remove('hovering');
+        cursorRing.classList.remove('hovering');
+      });
+    });
+
+    window.addEventListener('click', (e) => {
+      const ripple = document.createElement('div');
+      ripple.style.position = 'fixed';
+      ripple.style.left = `${e.clientX}px`;
+      ripple.style.top = `${e.clientY}px`;
+      ripple.style.width = '10px';
+      ripple.style.height = '10px';
+      ripple.style.borderRadius = '50%';
+      ripple.style.border = '2px solid #38bdf8';
+      ripple.style.pointerEvents = 'none';
+      ripple.style.zIndex = '9999';
+      ripple.style.transform = 'translate(-50%, -50%) scale(1)';
+      ripple.style.transition = 'transform 0.5s cubic-bezier(0.1, 0.8, 0.3, 1), opacity 0.5s ease';
+      document.body.appendChild(ripple);
+
+      setTimeout(() => {
+        ripple.style.transform = 'translate(-50%, -50%) scale(5)';
+        ripple.style.opacity = '0';
+      }, 10);
+
+      setTimeout(() => ripple.remove(), 550);
+    });
+  } else {
+    cursorDot.style.display = 'none';
+    cursorRing.style.display = 'none';
   }
-  requestAnimationFrame(renderCursor);
-
-  const hoverables = document.querySelectorAll('a, button, input, textarea, select, label, .portfolio-card, .service-card, .process-card, .est-option-btn');
-  hoverables.forEach((el) => {
-    el.addEventListener('mouseenter', () => {
-      cursorDot.classList.add('hovering');
-      cursorRing.classList.add('hovering');
-    });
-    el.addEventListener('mouseleave', () => {
-      cursorDot.classList.remove('hovering');
-      cursorRing.classList.remove('hovering');
-    });
-  });
-
-  window.addEventListener('click', (e) => {
-    const ripple = document.createElement('div');
-    ripple.style.position = 'fixed';
-    ripple.style.left = `${e.clientX}px`;
-    ripple.style.top = `${e.clientY}px`;
-    ripple.style.width = '10px';
-    ripple.style.height = '10px';
-    ripple.style.borderRadius = '50%';
-    ripple.style.border = '2px solid #38bdf8';
-    ripple.style.pointerEvents = 'none';
-    ripple.style.zIndex = '9999';
-    ripple.style.transform = 'translate(-50%, -50%) scale(1)';
-    ripple.style.transition = 'transform 0.5s cubic-bezier(0.1, 0.8, 0.3, 1), opacity 0.5s ease';
-    document.body.appendChild(ripple);
-
-    setTimeout(() => {
-      ripple.style.transform = 'translate(-50%, -50%) scale(5)';
-      ripple.style.opacity = '0';
-    }, 10);
-
-    setTimeout(() => ripple.remove(), 550);
-  });
 }
 
 
 /* ==========================================================================
-   3D CARD HOVER PERSPECTIVE TILT
+   3D CARD HOVER PERSPECTIVE TILT (DESKTOP ONLY)
    ========================================================================== */
-const tiltCards = document.querySelectorAll('.portfolio-card, .service-card, .process-card-front, .stat-card');
-tiltCards.forEach((card) => {
-  card.addEventListener('mousemove', (e) => {
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
+if (!isTouchDevice) {
+  const tiltCards = document.querySelectorAll('.portfolio-card, .service-card, .process-card-front, .stat-card');
+  tiltCards.forEach((card) => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
 
-    const rotateX = ((y - centerY) / centerY) * -6;
-    const rotateY = ((x - centerX) / centerX) * 6;
+      const rotateX = ((y - centerY) / centerY) * -6;
+      const rotateY = ((x - centerX) / centerX) * 6;
 
-    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+    });
   });
-
-  card.addEventListener('mouseleave', () => {
-    card.style.transform = '';
-  });
-});
+}
 
 /* ==========================================================================
    PORTFOLIO CASE STUDY POP-UP MODAL LOGIC
@@ -1304,6 +997,36 @@ const caseModalClose = document.getElementById('caseModalClose');
 const caseModalContent = document.getElementById('caseModalContent');
 
 const caseStudiesData = {
+  'VERDORA Botanical Living': {
+    category: 'E-Commerce & Botanical Living',
+    title: 'VERDORA — Premium Botanical Living Experience',
+    image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80',
+    description: 'An editorial, nature-inspired e-commerce storefront crafted for rare botanical specimens, indoor/outdoor greenery, and architectural plant styling. Engineered with sub-second page transitions, dynamic inventory filtering, and an organic visual design system.',
+    metric: '🌿 100/100 Core Web Vitals & Sub-Second Page Response',
+    tech: ['React', 'Tailwind CSS', 'Vite', 'HTML5', 'Modern CSS Grid'],
+    liveUrl: 'https://sanchitsharma217-arch.github.io/verdora/',
+    repoUrl: 'https://github.com/sanchitsharma217-arch/verdora'
+  },
+  'HAVENIX Architecture Studio': {
+    category: 'Architecture & Spatial Design',
+    title: 'HAVENIX — International Architecture Studio',
+    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80',
+    description: 'An international architecture portfolio showcasing monolithic residential and civic structures. Features editorial typography, high-contrast imagery, smooth transitions, and a clean minimalist layout communicating spatial rigor.',
+    metric: '🏛️ Monolithic Editorial UX with 60fps Smooth Transitions',
+    tech: ['HTML5', 'Modern CSS', 'JavaScript', 'Responsive Grid'],
+    liveUrl: 'https://sanchitsharma217-arch.github.io/Havenix/',
+    repoUrl: 'https://github.com/sanchitsharma217-arch/Havenix'
+  },
+  'AuraVoyage Luxury Travel': {
+    category: 'Hospitality & Luxury Travel',
+    title: 'AuraVoyage — Luxury Tours & Fine Dining Booking',
+    image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=900&q=80',
+    description: 'A bespoke luxury hospitality and travel portal offering curated world tours, 5-star resort reservations, reserved fine dining, and gourmet travel refreshment hampers with an intuitive interactive booking flow.',
+    metric: '✈️ Interactive Itinerary Planning & Sub-Second Booking Flows',
+    tech: ['React', 'Vite', 'JavaScript', 'Tailwind CSS', 'Interactive UI'],
+    liveUrl: 'https://sanchitsharma217-arch.github.io/AuraVoyage/',
+    repoUrl: 'https://github.com/sanchitsharma217-arch/AuraVoyage'
+  },
   'PayPulse Global': {
     category: 'Fintech & Payments',
     title: 'PayPulse Global Enterprise Gateway',
@@ -1312,13 +1035,13 @@ const caseStudiesData = {
     metric: '⚡ 4.2x Faster Checkout Velocity & 99.99% Gateway Uptime',
     tech: ['React', 'TypeScript', 'Node.js', 'Express', 'Redis', 'PostgreSQL', 'Stripe API']
   },
-  'InsightFlow Analytics': {
-    category: 'Analytics Dashboard',
-    title: 'InsightFlow Realtime Telemetry Platform',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=900&q=80',
-    description: 'A data visualizer application providing enterprise devops teams real-time system metrics, automated error alerts, and interactive dashboard charts.',
-    metric: '📊 Realtime WebSockets Data Processing for 10M+ Daily Logs',
-    tech: ['Next.js', 'React', 'MongoDB', 'Chart.js', 'WebSockets', 'Tailwind']
+  'NEXUS FLOW PRO Algo System': {
+    category: 'Fintech & Quantitative Trading',
+    title: 'NEXUS FLOW PRO — Algorithmic Execution System',
+    image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=900&q=80',
+    description: 'An institutional-grade algorithmic execution engine engineered in Pine Script v6. Eliminates common market traps through multi-timeframe trend alignment (200 EMA Macro filter + HTF confirmation), mathematical anti-chop detection (ADX, Choppiness Index, Market Efficiency Ratio), persistent dynamic S/R barriers, and zero-delay automated JSON webhooks for bot execution.',
+    metric: '🛡️ Anti-Chop Guard, Dynamic S/R Barriers & Real-Time JSON Webhooks',
+    tech: ['Pine Script v6', 'TradingView Engine', 'JSON Webhooks', 'Risk & Break-Even Engine', 'Quant Logic']
   },
   'CloudMint SaaS Portal': {
     category: 'SaaS Platform',
@@ -1327,6 +1050,44 @@ const caseStudiesData = {
     description: 'Complete user account, onboarding flow, and automated invoice management solution serving over 10,000 active SaaS subscribers.',
     metric: '🚀 10,000+ Active Users & Automated Stripe Webhooks',
     tech: ['Next.js', 'Node.js', 'SQLite', 'Tailwind', 'REST API']
+  },
+  'Branding, 3D Ads & UI Design Systems': {
+    category: 'Branding & Design Systems',
+    title: 'Branding, 3D Ads & UI Design Systems',
+    image: 'images/wanderly-travel-ui-system.jpg',
+    gallery: [
+      { src: 'images/sneaker-commercial-ad.jpg', title: 'FAST & WILD — Sneaker 3D Typography Commercial Ad (Photoshop)' },
+      { src: 'images/wanderly-travel-ui-system.jpg', title: 'WANDERLY — Travel & Adventure Platform Brand & Editorial UI (Figma)' },
+      { src: 'images/allo-jute-bag-infographic.jpg', title: 'Allo Kitchenware — Eco Jute Bag Feature Infographic (Amazon A+)' },
+      { src: 'images/aurora-drive-brand-system.jpg', title: 'AURORA DRIVE — Luxury Automotive Brand Identity & Fleet UI (Figma)' }
+    ],
+    description: 'An expansive creative showcase combining high-energy 3D commercial advertising, Amazon A+ e-commerce marketing infographics, and full-scale Figma web design systems engineered with comprehensive typography scales, color tokens, and responsive UI components.',
+    metric: '🎨 Dual-Discipline: High-Impact 3D Product Ads + Scalable Figma Design Systems',
+    tech: ['Adobe Photoshop', 'Figma', '3D Typography', 'Amazon A+ Layouts', 'Brand Guidelines', 'Design Tokens']
+  },
+  'Commercial Product Ads & D2C Creatives': {
+    category: 'Commercial Art & D2C Graphics',
+    title: 'Commercial 3D Product Campaigns & Marketplace Infographics',
+    image: 'images/sneaker-commercial-ad.jpg',
+    gallery: [
+      { src: 'images/sneaker-commercial-ad.jpg', title: 'FAST & WILD — Sneaker 3D Kinetic Typography Action Ad' },
+      { src: 'images/allo-jute-bag-infographic.jpg', title: 'Allo Kitchenware — Eco Jute Bag Feature Callouts (Amazon A+)' }
+    ],
+    description: 'Commercial art direction tailored for high-conversion retail advertising. Features kinetic 3D typography for athletic footwear ("FAST & WILD") with explosive spatial composition, alongside a clean Amazon A+ marketplace infographic for Allo Kitchenware highlighting bottle holders, insulated lining, and organic jute textures.',
+    metric: '🚀 High-Impact Visual Hierarchy & E-Commerce Conversion Optimization',
+    tech: ['Adobe Photoshop', '3D Typography', 'Photo Manipulation', 'Amazon A+ Content', 'Product Retouching', 'Visual Hierarchy']
+  },
+  'AURORA & WANDERLY — Brand Systems & Web UI': {
+    category: 'Web Graphic Design & Brand Systems',
+    title: 'AURORA DRIVE & WANDERLY — Comprehensive Brand & UI Systems',
+    image: 'images/aurora-drive-brand-system.jpg',
+    gallery: [
+      { src: 'images/aurora-drive-brand-system.jpg', title: 'AURORA DRIVE — Luxury Car Rental Brand Identity & Desktop/Mobile UI' },
+      { src: 'images/wanderly-travel-ui-system.jpg', title: 'WANDERLY — Travel & Adventure Platform Brand Identity & Editorial UI' }
+    ],
+    description: 'Two flagship Figma design systems crafted with bespoke brand identities. AURORA DRIVE establishes a luxury automotive aesthetic with champagne gold palettes, Playfair typography, fleet cards, and mobile booking flows. WANDERLY crafts a human, vibrant travel discovery experience with ocean teal accents, torn paper textures, compass motifs, and modular travel itinerary components.',
+    metric: '💎 Complete Multi-Device UI Kits, Design Tokens & Brand Style Guides',
+    tech: ['Figma', 'UI/UX Design', 'Design Systems', 'Typography Hierarchies', 'Color Token Systems', 'Mobile Prototyping']
   },
   'Apex Vision Brand Identity': {
     category: 'Branding & Design System',
@@ -1358,15 +1119,41 @@ function openCaseStudy(title) {
 
   const techChips = data.tech.map((t) => `<span class="modal-chip modal-chip-design">${t}</span>`).join(' ');
 
+  let mediaHtml = '';
+  if (data.gallery && data.gallery.length > 0) {
+    mediaHtml = `
+      <div class="case-media-gallery">
+        <div class="gallery-main-view">
+          <img id="galleryMainImg" src="${data.gallery[0].src}" alt="${data.gallery[0].title}" />
+          <div class="gallery-caption" id="galleryCaption">${data.gallery[0].title}</div>
+        </div>
+        ${data.gallery.length > 1 ? `
+          <div class="gallery-thumbnails">
+            ${data.gallery.map((item, idx) => `
+              <button type="button" class="gallery-thumb-btn ${idx === 0 ? 'active' : ''}" data-src="${item.src}" data-caption="${item.title}" title="${item.title}">
+                <img src="${item.src}" alt="${item.title}" />
+                <span class="thumb-index">#${idx + 1}</span>
+              </button>
+            `).join('')}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  } else {
+    mediaHtml = `
+      <div class="case-media">
+        <img src="${data.image}" alt="${data.title}" />
+      </div>
+    `;
+  }
+
   if (caseModalContent) {
     caseModalContent.innerHTML = `
       <div class="case-modal-inner">
         <span class="summary-badge">${data.category}</span>
         <h2>${data.title}</h2>
         <div class="case-modal-grid">
-          <div class="case-media">
-            <img src="${data.image}" alt="${data.title}" />
-          </div>
+          ${mediaHtml}
           <div class="case-details">
             <p>${data.description}</p>
             <div class="case-meta">
@@ -1379,7 +1166,17 @@ function openCaseStudy(title) {
                 <div class="tech-chips-row">${techChips}</div>
               </div>
             </div>
-            <div class="case-actions">
+            <div class="case-actions" style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin-top: 1.5rem;">
+              ${data.liveUrl ? `
+                <a href="${data.liveUrl}" target="_blank" rel="noopener" class="btn btn-secondary-pill" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+                  <span>Launch Live Demo ↗</span>
+                </a>
+              ` : ''}
+              ${data.repoUrl ? `
+                <a href="${data.repoUrl}" target="_blank" rel="noopener" class="btn btn-secondary-pill" style="border-color: rgba(56, 189, 248, 0.3);">
+                  <span>GitHub Repo ↗</span>
+                </a>
+              ` : ''}
               <a href="#contact" class="btn btn-primary-pill" onclick="closeCaseModal()">
                 <span>Inquire About Similar Build</span>
                 <svg class="btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -1389,6 +1186,24 @@ function openCaseStudy(title) {
         </div>
       </div>
     `;
+
+    // Bind gallery thumbnail switching
+    caseModalContent.querySelectorAll('.gallery-thumb-btn').forEach((thumb) => {
+      thumb.addEventListener('click', () => {
+        caseModalContent.querySelectorAll('.gallery-thumb-btn').forEach((b) => b.classList.remove('active'));
+        thumb.classList.add('active');
+        const mainImg = caseModalContent.querySelector('#galleryMainImg');
+        const caption = caseModalContent.querySelector('#galleryCaption');
+        if (mainImg) {
+          mainImg.style.opacity = '0.3';
+          mainImg.src = thumb.dataset.src;
+          mainImg.onload = () => { mainImg.style.opacity = '1'; };
+        }
+        if (caption) {
+          caption.textContent = thumb.dataset.caption;
+        }
+      });
+    });
   }
 
   if (caseModal) {
@@ -1413,6 +1228,18 @@ document.querySelectorAll('.portfolio-card .btn-link').forEach((link) => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
     const cardTitle = link.closest('.portfolio-card')?.querySelector('h3')?.textContent?.trim();
+    if (cardTitle) {
+      openCaseStudy(cardTitle);
+    }
+  });
+});
+
+// Also allow clicking directly on the image holder to open case study
+document.querySelectorAll('.portfolio-card .portfolio-img-holder').forEach((holder) => {
+  holder.style.cursor = 'pointer';
+  holder.addEventListener('click', (e) => {
+    if (e.target.closest('.design-filter-trigger')) return;
+    const cardTitle = holder.closest('.portfolio-card')?.querySelector('h3')?.textContent?.trim();
     if (cardTitle) {
       openCaseStudy(cardTitle);
     }
@@ -1453,8 +1280,11 @@ if (globalCanvas) {
     gMouseY = -1000;
   });
 
-  // Create Constellation Nodes
-  const nodeCount = Math.min(Math.floor((window.innerWidth * window.innerHeight) / 18000), 75);
+  // Create Constellation Nodes scaled for mobile vs desktop
+  const isMobileScreen = window.innerWidth < 768;
+  const nodeCount = isMobileScreen 
+    ? 22 
+    : Math.min(Math.floor((window.innerWidth * window.innerHeight) / 18000), 75);
   const nodes = [];
 
   const blueShades = [
@@ -1468,18 +1298,24 @@ if (globalCanvas) {
     nodes.push({
       x: Math.random() * (gWidth || window.innerWidth),
       y: Math.random() * (gHeight || window.innerHeight),
-      vx: (Math.random() - 0.5) * 0.7,
-      vy: (Math.random() - 0.5) * 0.7,
-      radius: Math.random() * 2.2 + 1,
+      vx: (Math.random() - 0.5) * (isMobileScreen ? 0.4 : 0.7),
+      vy: (Math.random() - 0.5) * (isMobileScreen ? 0.4 : 0.7),
+      radius: Math.random() * 2 + 1,
       baseAlpha: Math.random() * 0.45 + 0.2,
       color: blueShades[Math.floor(Math.random() * blueShades.length)]
     });
   }
 
-  const connectDist = 140;
+  const connectDist = isMobileScreen ? 85 : 140;
   const mouseRadius = 200;
+  let gAnimId = null;
 
   function animateGlobalConstellation() {
+    if (document.hidden) {
+      gAnimId = null;
+      return;
+    }
+
     gCtx.clearRect(0, 0, gWidth, gHeight);
 
     const isLight = document.body.classList.contains('light-theme');
@@ -1542,25 +1378,37 @@ if (globalCanvas) {
       }
     }
 
-    requestAnimationFrame(animateGlobalConstellation);
+    gAnimId = requestAnimationFrame(animateGlobalConstellation);
   }
 
-  requestAnimationFrame(animateGlobalConstellation);
+  gAnimId = requestAnimationFrame(animateGlobalConstellation);
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && !gAnimId) {
+      gAnimId = requestAnimationFrame(animateGlobalConstellation);
+    }
+  });
 }
 
 /* ==========================================================================
-   THREE.JS DENSE PREMIUM 3D SCENE — REFERENCE-MATCHED
+   THREE.JS DENSE PREMIUM 3D SCENE — REFERENCE-MATCHED (PERFORMANCE-OPTIMIZED)
    Packed wireframes, glass code cubes, floating symbols, node connections
    ========================================================================== */
 const bg3dCanvas = document.getElementById('bg3dCanvas');
 if (bg3dCanvas && window.THREE) {
+  const isMobile3D = window.innerWidth < 768 || isTouchDevice;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
   camera.position.z = 32;
 
-  const renderer = new THREE.WebGLRenderer({ canvas: bg3dCanvas, alpha: true, antialias: true });
+  const renderer = new THREE.WebGLRenderer({ 
+    canvas: bg3dCanvas, 
+    alpha: true, 
+    antialias: !isMobile3D,
+    powerPreference: isMobile3D ? 'low-power' : 'high-performance'
+  });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(isMobile3D ? 1 : Math.min(window.devicePixelRatio, 1.75));
 
   // Rich Multi-Point Lighting
   scene.add(new THREE.AmbientLight(0xffffff, 0.5));
@@ -1628,13 +1476,14 @@ if (bg3dCanvas && window.THREE) {
   const matGlassViolet = makeFresnel(0x7c3aed, 0x38bdf8, false, 0.15);
   const matGlassCyan   = makeFresnel(0x06b6d4, 0xc084fc, false, 0.12);
 
-  // ── LAYER GROUPS (different parallax speeds) ──
-  const layerFar   = new THREE.Group(); // 0.15x scroll
-  const layerMid   = new THREE.Group(); // 0.5x scroll
-  const layerNear  = new THREE.Group(); // 1.0x scroll
-  scene.add(layerFar);
-  scene.add(layerMid);
-  scene.add(layerNear);
+  // ── UNIFIED 3D HERO CLUSTER & AMBIENT GROUPS (Solution 1) ──
+  // All hero objects are locked in a single unified group so they never pull apart or rush ahead
+  const heroCluster = new THREE.Group();
+  scene.add(heroCluster);
+
+  // Background ambient group for gentle drifting stars, cubes & section objects
+  const ambientGroup = new THREE.Group();
+  scene.add(ambientGroup);
 
   // ── HYBRID SOLID GLASS CORE + FRESNEL WIREFRAME OVERLAY SYSTEM ──
   const glassCoreMatViolet = new THREE.MeshPhongMaterial({
@@ -1731,20 +1580,20 @@ if (bg3dCanvas && window.THREE) {
   const uiCard1 = create3DUICardMesh('</>', true);
   uiCard1.position.set(7, 5, 2);
   uiCard1.rotation.set(0.2, 0.4, -0.15);
-  layerNear.add(uiCard1);
+  heroCluster.add(uiCard1);
 
   // 2. Center UI Window Card (lower middle)
   const uiCard2 = create3DUICardMesh('</>', false);
   uiCard2.position.set(11, -7, 1);
   uiCard2.rotation.set(-0.3, 0.3, 0.1);
-  layerNear.add(uiCard2);
+  heroCluster.add(uiCard2);
 
   // Background Deep Torus Knot Ribbon (Large looping infinity weave)
   const bgRibbonGeo = new THREE.TorusKnotGeometry(11, 0.85, 180, 20);
   const bgRibbonMat = makeFresnel(0x8b5cf6, 0xec4899, true, 0.22);
   const bgRibbonMesh = new THREE.Mesh(bgRibbonGeo, bgRibbonMat);
   bgRibbonMesh.position.set(12, 0, -14);
-  layerFar.add(bgRibbonMesh);
+  heroCluster.add(bgRibbonMesh);
 
   // ══════════════════════════════════════════════════════════════
   // HERO CLUSTER — Dense Voluminous 3D Glass Objects on RIGHT
@@ -1754,68 +1603,68 @@ if (bg3dCanvas && window.THREE) {
   const heroTorusGeo = new THREE.TorusKnotGeometry(5.5, 1.5, 120, 20);
   const heroTorus = createHybridGlassMesh(heroTorusGeo, matWireViolet, glassCoreMatViolet, 1.012);
   heroTorus.position.set(14, 3, 2);
-  layerNear.add(heroTorus);
+  heroCluster.add(heroTorus);
 
   // Secondary Torus Knot (overlapping fluid geometry)
   const heroTorus2Geo = new THREE.TorusKnotGeometry(4.0, 1.0, 90, 16);
   const heroTorus2 = createHybridGlassMesh(heroTorus2Geo, matWireCyan, glassCoreMatCyan, 1.015);
   heroTorus2.position.set(10, -2, -3);
   heroTorus2.rotation.set(0.5, 0.8, 0);
-  layerNear.add(heroTorus2);
+  heroCluster.add(heroTorus2);
 
   // Large Torus Ring behind them
   const heroRingGeo = new THREE.TorusGeometry(7, 0.6, 16, 80);
   const heroRing = createHybridGlassMesh(heroRingGeo, matWirePink, glassCoreMatViolet, 1.01);
   heroRing.position.set(16, 1, -5);
   heroRing.rotation.set(0.3, 0.5, 0.2);
-  layerMid.add(heroRing);
+  heroCluster.add(heroRing);
 
   // Icosahedron (medium, left of torus cluster)
   const heroIcosaGeo = new THREE.IcosahedronGeometry(3.2, 1);
   const heroIcosa = createHybridGlassMesh(heroIcosaGeo, matWireCyan, glassCoreMatCyan, 1.02);
   heroIcosa.position.set(4, -3, -1);
-  layerNear.add(heroIcosa);
+  heroCluster.add(heroIcosa);
 
   // Small Octahedron (top right)
   const heroOcta1Geo = new THREE.OctahedronGeometry(2.0, 0);
   const heroOcta1 = createHybridGlassMesh(heroOcta1Geo, matWireViolet, glassCoreMatViolet, 1.02);
   heroOcta1.position.set(22, 8, -2);
-  layerMid.add(heroOcta1);
+  heroCluster.add(heroOcta1);
 
   // Small Dodecahedron (bottom right)
   const heroDodecaGeo = new THREE.DodecahedronGeometry(2.5, 0);
   const heroDodeca = createHybridGlassMesh(heroDodecaGeo, matWirePink, glassCoreMatViolet, 1.02);
   heroDodeca.position.set(20, -8, -4);
-  layerMid.add(heroDodeca);
+  heroCluster.add(heroDodeca);
 
   // Tetrahedron (scattered)
   const heroTetraGeo = new THREE.TetrahedronGeometry(1.8, 0);
   const heroTetra = createHybridGlassMesh(heroTetraGeo, matWireCyan, glassCoreMatCyan, 1.02);
   heroTetra.position.set(6, 8, -3);
-  layerMid.add(heroTetra);
+  heroCluster.add(heroTetra);
 
   // Wireframe Glass Sphere (far background)
   const heroSphereGeo = new THREE.SphereGeometry(3.5, 16, 12);
   const heroSphere = createHybridGlassMesh(heroSphereGeo, matWirePink, glassCoreMatViolet, 1.01);
   heroSphere.position.set(22, 0, -10);
-  layerFar.add(heroSphere);
+  heroCluster.add(heroSphere);
 
   // Extra icosahedron bottom-left
   const heroIcosa2Geo = new THREE.IcosahedronGeometry(2.8, 0);
   const heroIcosa2 = createHybridGlassMesh(heroIcosa2Geo, matWireViolet, glassCoreMatViolet, 1.02);
   heroIcosa2.position.set(-4, -10, -2);
-  layerMid.add(heroIcosa2);
+  heroCluster.add(heroIcosa2);
 
   // Extra small octahedrons scattered
   const scatterOcta1Geo = new THREE.OctahedronGeometry(1.2, 0);
   const scatterOcta1 = createHybridGlassMesh(scatterOcta1Geo, matWireCyan, glassCoreMatCyan, 1.02);
   scatterOcta1.position.set(-8, 6, -5);
-  layerFar.add(scatterOcta1);
+  heroCluster.add(scatterOcta1);
 
   const scatterOcta2Geo = new THREE.OctahedronGeometry(1.0, 0);
   const scatterOcta2 = createHybridGlassMesh(scatterOcta2Geo, matWireViolet, glassCoreMatViolet, 1.02);
   scatterOcta2.position.set(25, -4, -7);
-  layerFar.add(scatterOcta2);
+  heroCluster.add(scatterOcta2);
 
   // ══════════════════════════════════════════════════════════════
   // FLOATING 3D TECH PROCESSOR CHIP (Bottom Right - Reference Matched)
@@ -1865,7 +1714,7 @@ if (bg3dCanvas && window.THREE) {
   const techChip = createTechChipMesh();
   techChip.position.set(16, -11, 0);
   techChip.rotation.set(-0.4, 0.6, -0.2);
-  layerNear.add(techChip);
+  heroCluster.add(techChip);
 
   // ══════════════════════════════════════════════════════════════
   // SECTION OBJECTS — Spread across page height for scrolling
@@ -1886,7 +1735,7 @@ if (bg3dCanvas && window.THREE) {
   sectionConfigs.forEach(cfg => {
     const meshGroup = createHybridGlassMesh(cfg.geo, cfg.matW, cfg.matG, 1.015);
     meshGroup.position.set(...cfg.pos);
-    layerNear.add(meshGroup);
+    ambientGroup.add(meshGroup);
     sectionObjects.push(meshGroup);
   });
 
@@ -1955,7 +1804,7 @@ if (bg3dCanvas && window.THREE) {
     cube.position.set(...cfg.pos);
     cube.rotation.set(...cfg.rot);
     cube.userData = { baseY: cfg.pos[1], speed: 0.3 + Math.random() * 0.7, rotSpeed: 0.002 + Math.random() * 0.006 };
-    layerMid.add(cube);
+    ambientGroup.add(cube);
     codeCubes.push(cube);
   });
 
@@ -1992,7 +1841,7 @@ if (bg3dCanvas && window.THREE) {
     const scale = 0.5 + Math.random() * 1.2;
     sprite.scale.set(scale, scale, 1);
     sprite.userData = { baseY: y, driftSpeed: 0.1 + Math.random() * 0.4, phase: Math.random() * Math.PI * 2 };
-    layerFar.add(sprite);
+    ambientGroup.add(sprite);
     floatingSymbols.push(sprite);
   }
 
@@ -2012,7 +1861,7 @@ if (bg3dCanvas && window.THREE) {
   particleGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
   const particleMat = new THREE.PointsMaterial({ size: 0.35, color: 0xc4b5fd, transparent: true, opacity: 0.65 });
   const particles = new THREE.Points(particleGeo, particleMat);
-  layerFar.add(particles);
+  ambientGroup.add(particles);
 
   // ══════════════════════════════════════════════════════════════
   // INTERACTIVE NODE CONNECTIONS — Glowing lines between nearby nodes
@@ -2073,8 +1922,10 @@ if (bg3dCanvas && window.THREE) {
   }, { passive: true });
 
   // ══════════════════════════════════════════════════════════════
-  // RENDER LOOP
+  // RENDER LOOP (Solution 1: Unified Smooth Parallax & Soft Fade)
   // ══════════════════════════════════════════════════════════════
+
+  let heroScrollY = 0;
 
   function render3dScene() {
     frameCount++;
@@ -2083,96 +1934,120 @@ if (bg3dCanvas && window.THREE) {
     targetX += (mouseX - targetX) * 0.05;
     targetY += (mouseY - targetY) * 0.05;
 
-    // ── Hero Object Rotations + Mouse Tilt ──
-    heroTorus.rotation.x += 0.004;
-    heroTorus.rotation.y += 0.006;
-    heroTorus.rotation.x += targetY * 0.008;
-    heroTorus.rotation.y += targetX * 0.008;
+    // ── Unified Mouse Tilt for entire Hero Cluster ──
+    heroCluster.rotation.x = targetY * 0.003;
+    heroCluster.rotation.y = targetX * 0.003;
 
-    heroTorus2.rotation.x += 0.005;
-    heroTorus2.rotation.y -= 0.004;
+    // ── Hero Object Rotations ──
+    heroTorus.rotation.x += 0.003;
+    heroTorus.rotation.y += 0.004;
 
-    heroRing.rotation.x += 0.003;
-    heroRing.rotation.z += 0.002;
+    heroTorus2.rotation.x += 0.003;
+    heroTorus2.rotation.y -= 0.003;
 
-    heroIcosa.rotation.x += 0.006;
-    heroIcosa.rotation.y += 0.004;
+    heroRing.rotation.x += 0.002;
+    heroRing.rotation.z += 0.0015;
 
-    heroOcta1.rotation.x += 0.005;
-    heroOcta1.rotation.z += 0.007;
+    heroIcosa.rotation.x += 0.004;
+    heroIcosa.rotation.y += 0.003;
 
-    heroDodeca.rotation.y += 0.006;
-    heroDodeca.rotation.z += 0.003;
+    heroOcta1.rotation.x += 0.003;
+    heroOcta1.rotation.z += 0.004;
 
-    heroTetra.rotation.x += 0.008;
-    heroTetra.rotation.y += 0.005;
+    heroDodeca.rotation.y += 0.004;
+    heroDodeca.rotation.z += 0.002;
 
-    heroSphere.rotation.y += 0.002;
+    heroTetra.rotation.x += 0.004;
+    heroTetra.rotation.y += 0.003;
 
-    heroIcosa2.rotation.x += 0.005;
-    heroIcosa2.rotation.z += 0.004;
+    heroSphere.rotation.y += 0.0015;
 
-    scatterOcta1.rotation.x += 0.004;
-    scatterOcta1.rotation.y += 0.006;
+    heroIcosa2.rotation.x += 0.003;
+    heroIcosa2.rotation.z += 0.002;
 
-    scatterOcta2.rotation.z += 0.005;
+    scatterOcta1.rotation.x += 0.002;
+    scatterOcta1.rotation.y += 0.003;
+
+    scatterOcta2.rotation.z += 0.003;
 
     // ── Floating UI Window Cards Hover Physics ──
-    uiCard1.position.y = 5 + Math.sin(time * 1.2) * 0.4;
-    uiCard1.rotation.y = 0.4 + Math.cos(time * 0.8) * 0.08 + targetX * 0.005;
+    uiCard1.position.y = 5 + Math.sin(time * 1.2) * 0.3;
+    uiCard1.rotation.y = 0.4 + Math.cos(time * 0.8) * 0.06;
 
-    uiCard2.position.y = -7 + Math.sin(time * 1.0 + 1.5) * 0.35;
-    uiCard2.rotation.x = -0.3 + Math.sin(time * 0.7) * 0.06 + targetY * 0.005;
+    uiCard2.position.y = -7 + Math.sin(time * 1.0 + 1.5) * 0.25;
+    uiCard2.rotation.x = -0.3 + Math.sin(time * 0.7) * 0.05;
 
     // ── Background Looping Infinity Torus Ribbon ──
-    bgRibbonMesh.rotation.x += 0.002;
-    bgRibbonMesh.rotation.y += 0.003;
+    bgRibbonMesh.rotation.x += 0.0015;
+    bgRibbonMesh.rotation.y += 0.002;
 
     // ── Section Object Rotations ──
     sectionObjects.forEach((obj, i) => {
-      obj.rotation.x += 0.004 + i * 0.001;
-      obj.rotation.y += 0.003 + i * 0.0008;
+      obj.rotation.x += 0.003 + i * 0.0008;
+      obj.rotation.y += 0.002 + i * 0.0006;
     });
 
     // ── Code Cubes: Hover Float + Slow Rotation ──
     codeCubes.forEach((cube) => {
-      cube.position.y = cube.userData.baseY + Math.sin(time * cube.userData.speed + cube.userData.speed) * 0.6;
-      cube.rotation.x += cube.userData.rotSpeed;
-      cube.rotation.y += cube.userData.rotSpeed * 0.7;
+      cube.position.y = cube.userData.baseY + Math.sin(time * cube.userData.speed + cube.userData.speed) * 0.4;
+      cube.rotation.x += cube.userData.rotSpeed * 0.7;
+      cube.rotation.y += cube.userData.rotSpeed * 0.5;
     });
 
     // ── Floating Symbols: Gentle Drift ──
     floatingSymbols.forEach((sprite) => {
-      sprite.position.y = sprite.userData.baseY + Math.sin(time * sprite.userData.driftSpeed + sprite.userData.phase) * 0.8;
+      sprite.position.y = sprite.userData.baseY + Math.sin(time * sprite.userData.driftSpeed + sprite.userData.phase) * 0.5;
     });
 
     // ── Particles Drift ──
-    particles.rotation.y += 0.0005;
+    particles.rotation.y += 0.0003;
 
-    // ── Update Node Connections every 8 frames ──
-    if (frameCount % 8 === 0) {
+    // ── Update Node Connections (throttled on mobile to save CPU) ──
+    const connectionCadence = isMobile3D ? 16 : 8;
+    if (frameCount % connectionCadence === 0) {
       updateConnections();
     }
 
     // ── Camera: Mouse Tilt Inertia ──
-    camera.position.x = targetX * 0.6;
-    camera.position.y = -targetY * 0.6;
+    camera.position.x = targetX * 0.5;
+    camera.position.y = -targetY * 0.5;
     camera.lookAt(scene.position);
 
-    // ── Multi-Layer Parallax Scroll ──
+    // ── Solution 1: Unified, Smooth & Gentle Parallax Scroll ──
     const scrollY = window.scrollY || window.pageYOffset;
-    const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    const scrollPercent = scrollY / maxScroll;
+    const heroHeight = window.innerHeight || 800;
 
-    layerNear.position.y = scrollPercent * 260;   // 1.0x velocity
-    layerMid.position.y  = scrollPercent * 140;   // 0.5x velocity
-    layerFar.position.y  = scrollPercent * 45;    // 0.15x velocity
+    // Gentle upward drift for the hero cluster: max ~20 units with smooth lerp inertia
+    const targetHeroY = (scrollY / heroHeight) * 20;
+    heroScrollY += (targetHeroY - heroScrollY) * 0.08;
+    heroCluster.position.y = heroScrollY;
+
+    // Ambient background drift: very slow and subtle
+    ambientGroup.position.y = (scrollY / heroHeight) * 10;
+
+    // Soft fade as user scrolls past hero so 3D objects never distract from reading content
+    if (bg3dCanvas) {
+      const exitProgress = Math.min(1, Math.max(0, (scrollY - 80) / (heroHeight * 0.75)));
+      // Dims from 0.9 in hero down to 0.22 subtle background ambiance
+      bg3dCanvas.style.opacity = (0.9 - exitProgress * 0.68).toFixed(3);
+    }
 
     renderer.render(scene, camera);
-    requestAnimationFrame(render3dScene);
+
+    if (!document.hidden) {
+      sceneAnimId = requestAnimationFrame(render3dScene);
+    } else {
+      sceneAnimId = null;
+    }
   }
 
-  requestAnimationFrame(render3dScene);
+  let sceneAnimId = requestAnimationFrame(render3dScene);
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && !sceneAnimId) {
+      sceneAnimId = requestAnimationFrame(render3dScene);
+    }
+  });
 }
 
 /* ==========================================================================
