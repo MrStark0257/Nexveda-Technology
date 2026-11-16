@@ -17,7 +17,7 @@
 
 <br />
 
-[Live Demo](https://sanchitsharma217-arch.github.io/Nexveda-Technology/) • [Features](#-key-features) • [Tech Stack](#-technology-stack) • [Getting Started](#-getting-started) • [API Reference](#-api-reference)
+[🌐 Live Demo](https://sanchitsharma217-arch.github.io/Nexveda-Technology/) • [💻 GitHub Repo](https://github.com/MrStark0257/Nexveda-Technology) • [✨ Features](#-key-features) • [🛠️ Tech Stack](#-technology-stack) • [🚀 Getting Started](#-getting-started) • [🔌 API Reference](#-api-reference)
 
 ---
 
@@ -95,7 +95,7 @@ Simply open `index.html` directly in your favorite modern browser, or launch usi
 
 #### 1. Clone the Repository
 ```bash
-git clone https://github.com/sanchitsharma217-arch/Nexveda-Technology.git
+git clone https://github.com/MrStark0257/Nexveda-Technology.git
 cd Nexveda-Technology
 ```
 
@@ -143,7 +143,7 @@ npm start
 ```
 
 #### 5. Open in Browser
-Visit [http://localhost:8080](http://localhost:8080) to interact with the application.
+Visit [http://localhost:3000](http://localhost:3000) to interact with the application.
 
 ---
 
@@ -182,7 +182,7 @@ Visit [http://localhost:8080](http://localhost:8080) to interact with the applic
 
 | Variable | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `PORT` | Number | `8080` (or `3001`) | HTTP port for Express server |
+| `PORT` | Number | `3000` (or `3001`) | HTTP port for Express server |
 | `DB_TYPE` | String | `sqlite` | Database engine (`sqlite` or `postgres`) |
 | `DB_PATH` | String | `./data/nexveda.db` | Local SQLite database file path |
 | `CONTACT_EMAIL` | String | `nexvedatechnologies@gmail.com` | Destination inbox for form inquiries |
@@ -197,8 +197,8 @@ Visit [http://localhost:8080](http://localhost:8080) to interact with the applic
 
 ## 👥 Nexveda Technologies Team
 
-- **Meet Pavagadhi** — *Founder & Lead Architect / Web Developer & 3D Animator*
-- **Sanchit Sharma** — *AI Graphic Designer & Frontend Web Designer*
+- [Meet Pavagadhi](https://github.com/MrStark0257) — *Founder & Lead Architect / Web Developer & 3D Animator*
+- [Sanchit Sharma](https://github.com/sanchitsharma217-arch) — *AI Graphic Designer & Frontend Web Designer*
 
 ---
 
