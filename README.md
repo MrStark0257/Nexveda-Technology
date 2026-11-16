@@ -104,45 +104,13 @@ cd Nexveda-Technology
 npm install
 ```
 
-#### 3. Configure Environment Variables
-Create a `.env` file in the project root directory:
-
-```env
-# Server Port
-PORT=3000
-
-# Database Configuration (sqlite or postgres)
-DB_TYPE=sqlite
-DB_PATH=./data/nexveda.db
-
-# Notification Recipient
-CONTACT_EMAIL=nexvedatechnologies@gmail.com
-
-# Email Service: SMTP (e.g., Gmail)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=nexvedatechnologies@gmail.com
-SMTP_PASS=your_gmail_app_password
-
-# (Optional) Alternative Email Service: Resend
-# RESEND_API_KEY=re_your_api_key_here
-
-# (Optional) PostgreSQL Configuration (when DB_TYPE=postgres)
-# DB_HOST=localhost
-# DB_PORT=5432
-# DB_USER=postgres
-# DB_PASSWORD=your_password
-# DB_NAME=nexveda
-```
-
-#### 4. Run the Application
+#### 3. Run the Application
 ```bash
 # Start the server
 npm start
 ```
 
-#### 5. Open in Browser
+#### 4. Open in Browser
 Visit [http://localhost:3000](http://localhost:3000) to interact with the application.
 
 ---
