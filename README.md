@@ -178,23 +178,6 @@ Visit [http://localhost:3000](http://localhost:3000) to interact with the applic
 
 ---
 
-## 🛡️ Environment Variables Reference
-
-| Variable | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `PORT` | Number | `3000` (or `3001`) | HTTP port for Express server |
-| `DB_TYPE` | String | `sqlite` | Database engine (`sqlite` or `postgres`) |
-| `DB_PATH` | String | `./data/nexveda.db` | Local SQLite database file path |
-| `CONTACT_EMAIL` | String | `nexvedatechnologies@gmail.com` | Destination inbox for form inquiries |
-| `SMTP_HOST` | String | `smtp.gmail.com` | SMTP host address |
-| `SMTP_PORT` | Number | `587` | SMTP port (587 for TLS, 465 for SSL) |
-| `SMTP_USER` | String | - | SMTP authentication username / email |
-| `SMTP_PASS` | String | - | SMTP authentication password / App password |
-| `RESEND_API_KEY`| String | - | Resend API key (if using Resend instead of SMTP) |
-| `DATABASE_URL` | String | - | Direct PostgreSQL connection string URI |
-
----
-
 ## 👥 Nexveda Technologies Team
 
 - [Meet Pavagadhi](https://github.com/MrStark0257) — *Founder & Lead Architect / Web Developer & 3D Animator*
