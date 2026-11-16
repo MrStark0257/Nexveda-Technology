@@ -17,7 +17,7 @@
 
 <br />
 
-[🌐 Live Demo](https://sanchitsharma217-arch.github.io/Nexveda-Technology/) • [💻 GitHub Repo](https://github.com/MrStark0257/Nexveda-Technology) • [✨ Features](#-key-features) • [🛠️ Tech Stack](#-technology-stack) • [🚀 Getting Started](#-getting-started) • [🔌 API Reference](#-api-reference)
+[🌐 Live Demo](https://mrstark0257.github.io/Nexveda-Technology/) • [💻 GitHub Repo](https://github.com/MrStark0257/Nexveda-Technology) • [✨ Features](#-key-features) • [🛠️ Tech Stack](#-technology-stack) • [🚀 Getting Started](#-getting-started) • [🔌 API Reference](#-api-reference)
 
 ---
 
