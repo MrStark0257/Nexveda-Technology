@@ -500,7 +500,7 @@ if (contactForm) {
     try {
       const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? ''
-        : 'https://nexveda-technology.onrender.com';
+        : 'https://nexveda-backend-d16e.onrender.com';
 
       const response = await fetch(`${apiBase}/api/contact`, {
         method: 'POST',
