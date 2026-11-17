@@ -49,33 +49,40 @@ const connectionString = process.env.DATABASE_URL;
 function initSqlite() {
   dbType = 'sqlite';
   const dbPath = process.env.DB_PATH || './data/nexveda.db';
-  const dbDir = path.dirname(dbPath);
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
+  try {
+    const dbDir = path.dirname(dbPath);
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+    }
+  } catch (dirErr) {
+    console.warn('Could not create DB directory, SQLite will use memory:', dirErr.message);
   }
 
-  sqliteDb = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-      console.error('SQLite connection error:', err.message);
-      process.exit(1);
-    }
-
-    sqliteDb.run(`CREATE TABLE IF NOT EXISTS submissions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      phone TEXT,
-      message TEXT NOT NULL,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP
-    )`, (createErr) => {
-      if (createErr) {
-        console.error('Failed to create SQLite table:', createErr.message);
-        process.exit(1);
-      } else {
-        console.log(`Connected to SQLite Database at ${dbPath}`);
+  try {
+    sqliteDb = new sqlite3.Database(dbPath, (err) => {
+      if (err) {
+        console.warn('SQLite disk open error, falling back to memory database:', err.message);
+        sqliteDb = new sqlite3.Database(':memory:');
       }
+
+      sqliteDb.run(`CREATE TABLE IF NOT EXISTS submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        phone TEXT,
+        message TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )`, (createErr) => {
+        if (createErr) {
+          console.warn('Failed to create SQLite table:', createErr.message);
+        } else {
+          console.log(`Connected to SQLite Database at ${dbPath}`);
+        }
+      });
     });
-  });
+  } catch (initErr) {
+    console.warn('SQLite init error:', initErr.message);
+  }
 }
 
 if ((connectionString || pgHost) && process.env.DB_TYPE !== 'sqlite') {
@@ -178,8 +185,7 @@ app.post('/api/contact', async (req, res) => {
   try {
     await saveSubmission(name, email, phone, message);
   } catch (dbErr) {
-    console.error('Database Insert Error:', dbErr.message);
-    return res.status(500).json({ success: false, message: 'Failed to save your message.' });
+    console.warn('Database save warning (proceeding with email dispatch):', dbErr.message);
   }
 
   // Email notification sending via SMTP or Resend
@@ -228,6 +234,6 @@ app.post('/api/contact', async (req, res) => {
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running at http://0.0.0.0:${port}`);
 });

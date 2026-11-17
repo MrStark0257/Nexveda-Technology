@@ -498,7 +498,11 @@ if (contactForm) {
     }
 
     try {
-      const response = await fetch('/api/contact', {
+      const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? ''
+        : 'https://nexveda-technology.onrender.com';
+
+      const response = await fetch(`${apiBase}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, phone, message })
