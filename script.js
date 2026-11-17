@@ -506,6 +506,32 @@ if (contactForm) {
     formMessage.textContent = '';
 
     try {
+      // 1. Try local or Vercel serverless API first
+      let apiSucceeded = false;
+      try {
+        const localRes = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, phone, message })
+        });
+        if (localRes.ok) {
+          const localData = await localRes.json();
+          if (localData.success) {
+            apiSucceeded = true;
+            formMessage.style.color = '#10b981';
+            formMessage.textContent = localData.message || 'Thanks! Your message has been sent successfully.';
+            contactForm.reset();
+          }
+        }
+      } catch (localErr) {
+        console.log('Local/Vercel API not reachable, falling back to static service...');
+      }
+
+      if (apiSucceeded) {
+        return;
+      }
+
+      // 2. Fallback to FormSubmit (for static GitHub Pages hosting)
       const response = await fetch('https://formsubmit.co/ajax/nexvedatechnologies@gmail.com', {
         method: 'POST',
         headers: {
@@ -536,7 +562,7 @@ if (contactForm) {
         throw new Error(result.message || 'Submission failed');
       }
     } catch (error) {
-      console.warn('FormSubmit error, falling back to mailto:', error);
+      console.warn('Form submission error, falling back to mailto:', error);
       const mailtoUrl = `mailto:nexvedatechnologies@gmail.com?subject=${encodeURIComponent('Inquiry from ' + name)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\n\nMessage:\n${message}`)}`;
       window.location.href = mailtoUrl;
       formMessage.style.color = '#38bdf8';
