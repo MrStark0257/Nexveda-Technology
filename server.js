@@ -1,9 +1,29 @@
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection:', reason);
+});
+
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
-const { Pool } = require('pg');
+
+let sqlite3 = null;
+try {
+  sqlite3 = require('sqlite3').verbose();
+} catch (e) {
+  console.warn('Optional sqlite3 module not available:', e.message);
+}
+
+let Pool = null;
+try {
+  Pool = require('pg').Pool;
+} catch (e) {
+  console.warn('Optional pg module not available:', e.message);
+}
+
 const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 const dotenv = require('dotenv');
@@ -47,6 +67,10 @@ const pgPort = parseInt(process.env.DB_PORT || process.env.PG_PORT || '5432', 10
 const connectionString = process.env.DATABASE_URL;
 
 function initSqlite() {
+  if (!sqlite3) {
+    console.log('SQLite module not available, running without persistent database.');
+    return;
+  }
   dbType = 'sqlite';
   const dbPath = process.env.DB_PATH || './data/nexveda.db';
   try {
@@ -85,7 +109,7 @@ function initSqlite() {
   }
 }
 
-if ((connectionString || pgHost) && process.env.DB_TYPE !== 'sqlite') {
+if ((connectionString || pgHost) && process.env.DB_TYPE !== 'sqlite' && Pool) {
   dbType = 'postgres';
 
   async function initPostgres() {
@@ -151,17 +175,23 @@ if ((connectionString || pgHost) && process.env.DB_TYPE !== 'sqlite') {
 
 // Helper function to save submission
 async function saveSubmission(name, email, phone, message) {
-  if (dbType === 'postgres') {
-    const query = `INSERT INTO submissions (name, email, phone, message) VALUES ($1, $2, $3, $4) RETURNING id`;
-    await pgPool.query(query, [name, email, phone || '', message]);
-  } else {
-    return new Promise((resolve, reject) => {
-      const insertSql = `INSERT INTO submissions (name, email, phone, message) VALUES (?, ?, ?, ?)`;
-      sqliteDb.run(insertSql, [name, email, phone || '', message], function (err) {
-        if (err) reject(err);
-        else resolve(this.lastID);
+  try {
+    if (dbType === 'postgres' && pgPool) {
+      const query = `INSERT INTO submissions (name, email, phone, message) VALUES ($1, $2, $3, $4) RETURNING id`;
+      await pgPool.query(query, [name, email, phone || '', message]);
+    } else if (sqliteDb) {
+      await new Promise((resolve) => {
+        const insertSql = `INSERT INTO submissions (name, email, phone, message) VALUES (?, ?, ?, ?)`;
+        sqliteDb.run(insertSql, [name, email, phone || '', message], function (err) {
+          if (err) console.warn('SQLite save warning:', err.message);
+          resolve(this ? this.lastID : null);
+        });
       });
-    });
+    } else {
+      console.log(`Lead received (in-memory mode): ${name} <${email}>`);
+    }
+  } catch (err) {
+    console.warn('saveSubmission warning:', err.message);
   }
 }
 
