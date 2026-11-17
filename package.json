@@ -4,7 +4,7 @@
   "description": "Premium static company website for Nexveda Technologies with a contact form backend.",
   "scripts": {
     "build": "echo 'Build complete'",
-    "start": "node server.js"
+    "start": "node dev-server.js"
   },
   "dependencies": {
     "cors": "^2.8.6",
