@@ -497,31 +497,55 @@ if (contactForm) {
       return;
     }
 
-    try {
-      const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-        ? ''
-        : 'https://nexveda-backend-d16e.onrender.com';
+    const submitBtn = contactForm.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Send Message';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = 'Sending...';
+    }
+    formMessage.textContent = '';
 
-      const response = await fetch(`${apiBase}/api/contact`, {
+    try {
+      const response = await fetch('https://formsubmit.co/ajax/nexvedatechnologies@gmail.com', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, message })
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          phone: phone || 'N/A',
+          message,
+          _subject: `New Inquiry from ${name} - Nexveda Technologies`,
+          _captcha: 'false',
+          _template: 'table'
+        })
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        formMessage.textContent = result.message || 'Thanks! Your message has been sent successfully.';
-        if (result.success) {
-          contactForm.reset();
-        }
+      const result = await response.json();
+
+      if (response.ok && (result.success === 'true' || result.success === true)) {
+        formMessage.style.color = '#10b981';
+        formMessage.textContent = 'Thanks! Your message has been sent successfully.';
+        contactForm.reset();
+      } else if (result.message && result.message.toLowerCase().includes('activation')) {
+        formMessage.style.color = '#f59e0b';
+        formMessage.textContent = 'Form activation link sent! Please check nexvedatechnologies@gmail.com and click "Activate Form" once.';
       } else {
-        throw new Error('API unreachable or non-200 status');
+        throw new Error(result.message || 'Submission failed');
       }
     } catch (error) {
-      // Direct mailto fallback for static site environments (e.g., GitHub Pages)
+      console.warn('FormSubmit error, falling back to mailto:', error);
       const mailtoUrl = `mailto:nexvedatechnologies@gmail.com?subject=${encodeURIComponent('Inquiry from ' + name)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\n\nMessage:\n${message}`)}`;
       window.location.href = mailtoUrl;
+      formMessage.style.color = '#38bdf8';
       formMessage.textContent = 'Opening your mail application to send your inquiry directly...';
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      }
     }
   });
 }
