@@ -2,7 +2,6 @@
   "name": "nexveda-technologies-site",
   "version": "1.0.0",
   "description": "Premium static company website for Nexveda Technologies with a contact form backend.",
-  "main": "server.js",
   "scripts": {
     "build": "echo 'Build complete'",
     "start": "node server.js"

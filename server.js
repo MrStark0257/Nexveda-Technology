@@ -264,6 +264,10 @@ app.post('/api/contact', async (req, res) => {
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running at http://0.0.0.0:${port}`);
-});
+module.exports = app;
+
+if (!process.env.VERCEL) {
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Server running at http://0.0.0.0:${port}`);
+  });
+}
