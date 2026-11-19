@@ -1524,332 +1524,146 @@ if (bg3dCanvas && window.THREE) {
     });
   }
 
-  const matWireViolet  = makeFresnel(0x7c3aed, 0x38bdf8, true, 0.40);
-  const matWireCyan    = makeFresnel(0x38bdf8, 0xc084fc, true, 0.40);
-  const matWirePink    = makeFresnel(0xa855f7, 0x06b6d4, true, 0.35);
-  const matGlassViolet = makeFresnel(0x7c3aed, 0x38bdf8, false, 0.15);
-  const matGlassCyan   = makeFresnel(0x06b6d4, 0xc084fc, false, 0.12);
+  // ── REFINED SMOOTH FRESNEL & GLASS SHADERS ──
+  const matSmoothGlassViolet = makeFresnel(0x8b5cf6, 0x38bdf8, false, 0.28);
+  const matSmoothGlassCyan   = makeFresnel(0x06b6d4, 0xc084fc, false, 0.24);
+  const matSubtleContour     = makeFresnel(0x38bdf8, 0xa855f7, true, 0.08); // Ultra-faint architectural outline
 
-  // ── UNIFIED 3D HERO CLUSTER & AMBIENT GROUPS (Solution 1) ──
-  // All hero objects are locked in a single unified group so they never pull apart or rush ahead
+  // ── UNIFIED 3D HERO CLUSTER & AMBIENT GROUPS ──
   const heroCluster = new THREE.Group();
   scene.add(heroCluster);
 
-  // Background ambient group for gentle drifting stars, cubes & section objects
   const ambientGroup = new THREE.Group();
   scene.add(ambientGroup);
 
-  // ── HYBRID SOLID GLASS CORE + FRESNEL WIREFRAME OVERLAY SYSTEM ──
+  // ── SMOOTH TRANSLUCENT GLASS MATERIALS WITH SOFT SPECULAR HIGHLIGHTS ──
   const glassCoreMatViolet = new THREE.MeshPhongMaterial({
     color: 0x6d28d9,
-    emissive: 0x2e1065,
+    emissive: 0x1e1b4b,
     specular: 0x38bdf8,
-    shininess: 150,
+    shininess: 180,
     transparent: true,
-    opacity: 0.38,
+    opacity: 0.40,
     side: THREE.DoubleSide
   });
 
   const glassCoreMatCyan = new THREE.MeshPhongMaterial({
     color: 0x0284c7,
-    emissive: 0x075985,
+    emissive: 0x082f49,
     specular: 0xc084fc,
-    shininess: 150,
+    shininess: 180,
     transparent: true,
-    opacity: 0.35,
+    opacity: 0.36,
     side: THREE.DoubleSide
   });
 
-  // Helper to create a voluminous 3D Hybrid Glass Object (Solid Glass + Wireframe Overlay)
-  function createHybridGlassMesh(geometry, wireMat, glassMat, scaleOffset = 1.01) {
+  // Helper to create a sleek 3D glass object with an optional soft whisper-wireframe
+  function createCleanGlassMesh(geometry, glassMat, withContour = true) {
     const group = new THREE.Group();
     const glassMesh = new THREE.Mesh(geometry, glassMat);
-    
-    // Create slightly enlarged wireframe overlay
-    const wireMesh = new THREE.Mesh(geometry.clone(), wireMat);
-    wireMesh.scale.setScalar(scaleOffset);
-
     group.add(glassMesh);
-    group.add(wireMesh);
+
+    if (withContour) {
+      const wireMesh = new THREE.Mesh(geometry.clone(), matSubtleContour);
+      wireMesh.scale.setScalar(1.008);
+      group.add(wireMesh);
+    }
     return group;
   }
 
-  // ── FLOATING 3D GLASS UI WINDOW CARDS (Matching Reference Image) ──
-  function create3DUICardMesh(symbol, isPrimary = true) {
-    const cardGroup = new THREE.Group();
-    
-    const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 180;
-    const ctx = canvas.getContext('2d');
-
-    // Rounded card fill with gradient border
-    ctx.fillStyle = isPrimary ? 'rgba(99, 102, 241, 0.85)' : 'rgba(30, 27, 75, 0.85)';
-    ctx.beginPath();
-    if (ctx.roundRect) {
-      ctx.roundRect(0, 0, 256, 180, 24);
-    } else {
-      ctx.rect(0, 0, 256, 180);
-    }
-    ctx.fill();
-
-    ctx.strokeStyle = isPrimary ? '#c084fc' : '#38bdf8';
-    ctx.lineWidth = 6;
-    ctx.stroke();
-
-    // Window Header Bar
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
-    ctx.fillRect(0, 0, 256, 48);
-
-    // Control Dots
-    ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(24, 24, 6, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(44, 24, 6, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.arc(64, 24, 6, 0, Math.PI * 2); ctx.fill();
-
-    // Center Code Logo / Symbol
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 58px monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(symbol, 128, 118);
-
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.minFilter = THREE.LinearFilter;
-
-    const cardMat = new THREE.MeshPhongMaterial({
-      map: tex,
-      transparent: true,
-      opacity: 0.9,
-      specular: 0x38bdf8,
-      shininess: 150,
-      side: THREE.DoubleSide
-    });
-
-    const cardMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 2.5), cardMat);
-    cardGroup.add(cardMesh);
-    return cardGroup;
-  }
-
-  // 1. Top UI Window Card (near torus knot top-left)
-  const uiCard1 = create3DUICardMesh('</>', true);
-  uiCard1.position.set(7, 5, 2);
-  uiCard1.rotation.set(0.2, 0.4, -0.15);
-  heroCluster.add(uiCard1);
-
-  // 2. Center UI Window Card (lower middle)
-  const uiCard2 = create3DUICardMesh('</>', false);
-  uiCard2.position.set(11, -7, 1);
-  uiCard2.rotation.set(-0.3, 0.3, 0.1);
-  heroCluster.add(uiCard2);
-
-  // Background Deep Torus Knot Ribbon (Large looping infinity weave)
-  const bgRibbonGeo = new THREE.TorusKnotGeometry(11, 0.85, 180, 20);
-  const bgRibbonMat = makeFresnel(0x8b5cf6, 0xec4899, true, 0.22);
-  const bgRibbonMesh = new THREE.Mesh(bgRibbonGeo, bgRibbonMat);
-  bgRibbonMesh.position.set(12, 0, -14);
-  heroCluster.add(bgRibbonMesh);
-
   // ══════════════════════════════════════════════════════════════
-  // HERO CLUSTER — Dense Voluminous 3D Glass Objects on RIGHT
+  // HERO CENTERPIECE — Elegant, Flowing Glass Torus Knot (Clean & Fluid)
   // ══════════════════════════════════════════════════════════════
-
-  // Main Hero Torus Knot (Solid Translucent Glass Core + Fresnel Wireframe Overlay)
-  const heroTorusGeo = new THREE.TorusKnotGeometry(5.5, 1.5, 120, 20);
-  const heroTorus = createHybridGlassMesh(heroTorusGeo, matWireViolet, glassCoreMatViolet, 1.012);
-  heroTorus.position.set(14, 3, 2);
+  const heroTorusGeo = new THREE.TorusKnotGeometry(6.4, 1.5, 240, 36, 2, 3);
+  const heroTorus = createCleanGlassMesh(heroTorusGeo, glassCoreMatViolet, true);
+  heroTorus.position.set(13.5, 1.5, 0);
+  heroTorus.rotation.set(0.4, 0.6, 0.2);
   heroCluster.add(heroTorus);
 
-  // Secondary Torus Knot (overlapping fluid geometry)
-  const heroTorus2Geo = new THREE.TorusKnotGeometry(4.0, 1.0, 90, 16);
-  const heroTorus2 = createHybridGlassMesh(heroTorus2Geo, matWireCyan, glassCoreMatCyan, 1.015);
-  heroTorus2.position.set(10, -2, -3);
-  heroTorus2.rotation.set(0.5, 0.8, 0);
-  heroCluster.add(heroTorus2);
-
-  // Large Torus Ring behind them
-  const heroRingGeo = new THREE.TorusGeometry(7, 0.6, 16, 80);
-  const heroRing = createHybridGlassMesh(heroRingGeo, matWirePink, glassCoreMatViolet, 1.01);
-  heroRing.position.set(16, 1, -5);
-  heroRing.rotation.set(0.3, 0.5, 0.2);
-  heroCluster.add(heroRing);
-
-  // Icosahedron (medium, left of torus cluster)
-  const heroIcosaGeo = new THREE.IcosahedronGeometry(3.2, 1);
-  const heroIcosa = createHybridGlassMesh(heroIcosaGeo, matWireCyan, glassCoreMatCyan, 1.02);
-  heroIcosa.position.set(4, -3, -1);
+  // Satellite 1: Smooth Glass Icosahedron (balanced lower-left)
+  const heroIcosaGeo = new THREE.IcosahedronGeometry(2.8, 1);
+  const heroIcosa = createCleanGlassMesh(heroIcosaGeo, glassCoreMatCyan, true);
+  heroIcosa.position.set(4.2, -4.8, 1.5);
   heroCluster.add(heroIcosa);
 
-  // Small Octahedron (top right)
-  const heroOcta1Geo = new THREE.OctahedronGeometry(2.0, 0);
-  const heroOcta1 = createHybridGlassMesh(heroOcta1Geo, matWireViolet, glassCoreMatViolet, 1.02);
-  heroOcta1.position.set(22, 8, -2);
-  heroCluster.add(heroOcta1);
+  // Satellite 2: Floating Octahedron Crystal (balanced upper-right)
+  const heroOctaGeo = new THREE.OctahedronGeometry(2.2, 0);
+  const heroOcta = createCleanGlassMesh(heroOctaGeo, glassCoreMatViolet, true);
+  heroOcta.position.set(21.5, 7.5, -2);
+  heroCluster.add(heroOcta);
 
-  // Small Dodecahedron (bottom right)
-  const heroDodecaGeo = new THREE.DodecahedronGeometry(2.5, 0);
-  const heroDodeca = createHybridGlassMesh(heroDodecaGeo, matWirePink, glassCoreMatViolet, 1.02);
-  heroDodeca.position.set(20, -8, -4);
-  heroCluster.add(heroDodeca);
-
-  // Tetrahedron (scattered)
-  const heroTetraGeo = new THREE.TetrahedronGeometry(1.8, 0);
-  const heroTetra = createHybridGlassMesh(heroTetraGeo, matWireCyan, glassCoreMatCyan, 1.02);
-  heroTetra.position.set(6, 8, -3);
-  heroCluster.add(heroTetra);
-
-  // Wireframe Glass Sphere (far background)
-  const heroSphereGeo = new THREE.SphereGeometry(3.5, 16, 12);
-  const heroSphere = createHybridGlassMesh(heroSphereGeo, matWirePink, glassCoreMatViolet, 1.01);
-  heroSphere.position.set(22, 0, -10);
-  heroCluster.add(heroSphere);
-
-  // Extra icosahedron bottom-left
-  const heroIcosa2Geo = new THREE.IcosahedronGeometry(2.8, 0);
-  const heroIcosa2 = createHybridGlassMesh(heroIcosa2Geo, matWireViolet, glassCoreMatViolet, 1.02);
-  heroIcosa2.position.set(-4, -10, -2);
-  heroCluster.add(heroIcosa2);
-
-  // Extra small octahedrons scattered
-  const scatterOcta1Geo = new THREE.OctahedronGeometry(1.2, 0);
-  const scatterOcta1 = createHybridGlassMesh(scatterOcta1Geo, matWireCyan, glassCoreMatCyan, 1.02);
-  scatterOcta1.position.set(-8, 6, -5);
-  heroCluster.add(scatterOcta1);
-
-  const scatterOcta2Geo = new THREE.OctahedronGeometry(1.0, 0);
-  const scatterOcta2 = createHybridGlassMesh(scatterOcta2Geo, matWireViolet, glassCoreMatViolet, 1.02);
-  scatterOcta2.position.set(25, -4, -7);
-  heroCluster.add(scatterOcta2);
+  // Deep Background Glass Ring (adds cinematic depth without visual clutter)
+  const heroRingGeo = new THREE.TorusGeometry(8.5, 0.35, 16, 90);
+  const heroRing = createCleanGlassMesh(heroRingGeo, glassCoreMatCyan, false);
+  heroRing.position.set(16, 0, -10);
+  heroRing.rotation.set(0.6, 0.4, 0.2);
+  heroCluster.add(heroRing);
 
   // ══════════════════════════════════════════════════════════════
-  // FLOATING 3D TECH PROCESSOR CHIP (Bottom Right - Reference Matched)
+  // SECTION OBJECTS — Spread across page height for smooth scrolling
   // ══════════════════════════════════════════════════════════════
-  function createTechChipMesh() {
-    const chipGroup = new THREE.Group();
-    
-    // Main Silicon Base Plate
-    const baseGeo = new THREE.BoxGeometry(4.5, 3.2, 0.4);
-    const baseMat = new THREE.MeshPhongMaterial({
-      color: 0x1e1b4b,
-      emissive: 0x312e81,
-      specular: 0x38bdf8,
-      shininess: 120,
-      transparent: true,
-      opacity: 0.85
-    });
-    const baseMesh = new THREE.Mesh(baseGeo, baseMat);
-    chipGroup.add(baseMesh);
-
-    // Glowing Inner Die
-    const dieGeo = new THREE.BoxGeometry(2.2, 1.6, 0.45);
-    const dieMat = new THREE.MeshPhongMaterial({
-      color: 0x7c3aed,
-      emissive: 0x6d28d9,
-      specular: 0x38bdf8,
-      shininess: 160
-    });
-    const dieMesh = new THREE.Mesh(dieGeo, dieMat);
-    chipGroup.add(dieMesh);
-
-    // Pin Traces around chip
-    for (let p = -1.8; p <= 1.8; p += 0.45) {
-      const pinGeo = new THREE.BoxGeometry(0.15, 0.6, 0.1);
-      const pinMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
-      const pinTop = new THREE.Mesh(pinGeo, pinMat);
-      pinTop.position.set(p, 1.8, 0);
-      const pinBot = new THREE.Mesh(pinGeo, pinMat);
-      pinBot.position.set(p, -1.8, 0);
-      chipGroup.add(pinTop);
-      chipGroup.add(pinBot);
-    }
-
-    return chipGroup;
-  }
-
-  const techChip = createTechChipMesh();
-  techChip.position.set(16, -11, 0);
-  techChip.rotation.set(-0.4, 0.6, -0.2);
-  heroCluster.add(techChip);
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION OBJECTS — Spread across page height for scrolling
-  // ══════════════════════════════════════════════════════════════
-
   const sectionObjects = [];
   const sectionConfigs = [
-    { geo: new THREE.IcosahedronGeometry(4, 1),    matW: matWireCyan,   matG: glassCoreMatCyan,   pos: [-17, -28, -4] },
-    { geo: new THREE.OctahedronGeometry(4.5, 0),   matW: matWireViolet, matG: glassCoreMatViolet, pos: [17, -55, -2] },
-    { geo: new THREE.TorusGeometry(5, 1.4, 16, 50),matW: matWirePink,   matG: glassCoreMatViolet, pos: [-15, -90, -4] },
-    { geo: new THREE.DodecahedronGeometry(4.2, 0), matW: matWireViolet, matG: glassCoreMatViolet, pos: [16, -125, -3] },
-    { geo: new THREE.OctahedronGeometry(4.8, 1),   matW: matWireCyan,   matG: glassCoreMatCyan,   pos: [-16, -155, -3] },
-    { geo: new THREE.TorusKnotGeometry(3.8, 1.0, 80, 16), matW: matWireViolet, matG: glassCoreMatViolet, pos: [15, -190, -2] },
-    { geo: new THREE.IcosahedronGeometry(4.5, 2),  matW: matWirePink,   matG: glassCoreMatCyan,   pos: [-16, -220, -4] },
-    { geo: new THREE.DodecahedronGeometry(5.0, 0), matW: matWireViolet, matG: glassCoreMatViolet, pos: [16, -255, -3] }
+    { geo: new THREE.IcosahedronGeometry(4, 1),    mat: glassCoreMatCyan,   pos: [-17, -28, -4] },
+    { geo: new THREE.OctahedronGeometry(4.5, 0),   mat: glassCoreMatViolet, pos: [17, -55, -2] },
+    { geo: new THREE.TorusGeometry(5, 1.2, 16, 50),mat: glassCoreMatViolet, pos: [-15, -90, -4] },
+    { geo: new THREE.DodecahedronGeometry(4.2, 0), mat: glassCoreMatViolet, pos: [16, -125, -3] },
+    { geo: new THREE.OctahedronGeometry(4.8, 1),   mat: glassCoreMatCyan,   pos: [-16, -155, -3] },
+    { geo: new THREE.TorusKnotGeometry(3.6, 0.9, 80, 16), mat: glassCoreMatViolet, pos: [15, -190, -2] },
+    { geo: new THREE.IcosahedronGeometry(4.5, 2),  mat: glassCoreMatCyan,   pos: [-16, -220, -4] },
+    { geo: new THREE.DodecahedronGeometry(5.0, 0), mat: glassCoreMatViolet, pos: [16, -255, -3] }
   ];
 
   sectionConfigs.forEach(cfg => {
-    const meshGroup = createHybridGlassMesh(cfg.geo, cfg.matW, cfg.matG, 1.015);
+    const meshGroup = createCleanGlassMesh(cfg.geo, cfg.mat, true);
     meshGroup.position.set(...cfg.pos);
     ambientGroup.add(meshGroup);
     sectionObjects.push(meshGroup);
   });
 
   // ══════════════════════════════════════════════════════════════
-  // GLASS CODE CUBES — Translucent 3D Glossy Cubes with Code Symbols
+  // AMBIENT GLASS CODE CUBES — Subtle, gentle background accents
   // ══════════════════════════════════════════════════════════════
-
   function createCodeCubeTexture(symbol, bgColor, textColor) {
     const canvas = document.createElement('canvas');
     canvas.width = 128;
     canvas.height = 128;
     const ctx = canvas.getContext('2d');
-
-    // Translucent glass face
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, 128, 128);
-
-    // Border glow
     ctx.strokeStyle = textColor;
     ctx.lineWidth = 3;
     ctx.strokeRect(4, 4, 120, 120);
-
-    // Code symbol
     ctx.fillStyle = textColor;
     ctx.font = 'bold 44px monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(symbol, 64, 64);
-
     const tex = new THREE.CanvasTexture(canvas);
     tex.minFilter = THREE.LinearFilter;
     return tex;
   }
 
   const cubeSymbols = [
-    { sym: '{ }',   pos: [8, 6, -2],   size: 1.8, rot: [0.3, 0.5, 0.1] },
-    { sym: '</>',   pos: [20, -5, -1],  size: 1.5, rot: [0.8, 0.2, 0.4] },
-    { sym: '{...}', pos: [12, -7, 1],   size: 1.4, rot: [0.1, 0.9, 0.3] },
-    { sym: '</>', pos: [-6, 4, -3],   size: 1.3, rot: [0.6, 0.3, 0.7] },
-    { sym: '[ ]',   pos: [24, 5, -4],   size: 1.2, rot: [0.4, 0.7, 0.2] },
-    { sym: '{ }',   pos: [-2, -6, -5],  size: 1.6, rot: [0.2, 0.4, 0.8] },
-    { sym: '< >',   pos: [18, 9, -3],   size: 1.1, rot: [0.7, 0.1, 0.5] },
-    { sym: '=>',    pos: [6, -10, -2],  size: 1.3, rot: [0.5, 0.6, 0.1] },
-    { sym: '::',    pos: [-10, -3, -6], size: 1.0, rot: [0.9, 0.2, 0.3] },
-    { sym: '( )',   pos: [26, -9, -5],  size: 1.2, rot: [0.3, 0.8, 0.6] },
-    // More cubes deeper in page
-    { sym: '{ }',   pos: [-12, -40, -3], size: 1.5, rot: [0.4, 0.5, 0.2] },
-    { sym: '</>',   pos: [14, -70, -2],  size: 1.4, rot: [0.2, 0.7, 0.5] },
-    { sym: '[ ]',   pos: [-8, -100, -4], size: 1.3, rot: [0.6, 0.3, 0.8] },
-    { sym: '=>',    pos: [18, -130, -3], size: 1.2, rot: [0.1, 0.9, 0.4] },
-    { sym: '{...}', pos: [-14, -160, -5],size: 1.5, rot: [0.7, 0.2, 0.6] },
+    { sym: '{ }', pos: [7, 7, -6],    size: 1.3, rot: [0.3, 0.5, 0.1] },
+    { sym: '</>', pos: [22, -6, -4],  size: 1.4, rot: [0.8, 0.2, 0.4] },
+    { sym: '=>',  pos: [15, -8, -1],  size: 1.1, rot: [0.1, 0.9, 0.3] },
+    { sym: '[ ]', pos: [-5, -6, -8],  size: 1.2, rot: [0.4, 0.7, 0.2] },
+    // Scroll depth cubes
+    { sym: '{ }', pos: [-12, -40, -4], size: 1.5, rot: [0.4, 0.5, 0.2] },
+    { sym: '</>', pos: [14, -70, -3],  size: 1.4, rot: [0.2, 0.7, 0.5] },
+    { sym: '[ ]', pos: [-8, -100, -5], size: 1.3, rot: [0.6, 0.3, 0.8] },
+    { sym: '=>',  pos: [18, -130, -4], size: 1.2, rot: [0.1, 0.9, 0.4] },
+    { sym: '{...}', pos: [-14, -160, -6],size: 1.5, rot: [0.7, 0.2, 0.6] }
   ];
 
   const codeCubes = [];
   cubeSymbols.forEach(cfg => {
-    const tex = createCodeCubeTexture(cfg.sym, 'rgba(124, 58, 237, 0.3)', 'rgba(192, 132, 252, 1)');
+    const tex = createCodeCubeTexture(cfg.sym, 'rgba(124, 58, 237, 0.2)', 'rgba(192, 132, 252, 0.8)');
     const mat = new THREE.MeshPhongMaterial({
       map: tex,
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.45,
       specular: 0x38bdf8,
       shininess: 120,
       side: THREE.DoubleSide
@@ -1857,116 +1671,37 @@ if (bg3dCanvas && window.THREE) {
     const cube = new THREE.Mesh(new THREE.BoxGeometry(cfg.size, cfg.size, cfg.size), mat);
     cube.position.set(...cfg.pos);
     cube.rotation.set(...cfg.rot);
-    cube.userData = { baseY: cfg.pos[1], speed: 0.3 + Math.random() * 0.7, rotSpeed: 0.002 + Math.random() * 0.006 };
+    cube.userData = { baseY: cfg.pos[1], speed: 0.2 + Math.random() * 0.4, rotSpeed: 0.001 + Math.random() * 0.003 };
     ambientGroup.add(cube);
     codeCubes.push(cube);
   });
 
   // ══════════════════════════════════════════════════════════════
-  // FLOATING CODE SYMBOL PARTICLES — { } < > + ; / => scattered
+  // SOFT AMBIENT STAR / DUST PARTICLES (Gentle & Clean)
   // ══════════════════════════════════════════════════════════════
-
-  function createSymbolSprite(symbol) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 64;
-    canvas.height = 64;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = 'rgba(196, 181, 253, 0.9)';
-    ctx.font = 'bold 36px monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(symbol, 32, 32);
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.minFilter = THREE.LinearFilter;
-    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.8 });
-    return new THREE.Sprite(mat);
-  }
-
-  const symbolChars = ['{ }', '</>', '+', ';', '=>', '< >', '::',  '[ ]', '( )', '&&', '||', '!=', '++'];
-  const floatingSymbols = [];
-
-  for (let i = 0; i < 80; i++) {
-    const char = symbolChars[Math.floor(Math.random() * symbolChars.length)];
-    const sprite = createSymbolSprite(char);
-    const x = (Math.random() - 0.5) * 70;
-    const y = (Math.random() - 0.5) * 320;
-    const z = (Math.random() - 0.5) * 40 - 5;
-    sprite.position.set(x, y, z);
-    const scale = 0.5 + Math.random() * 1.2;
-    sprite.scale.set(scale, scale, 1);
-    sprite.userData = { baseY: y, driftSpeed: 0.1 + Math.random() * 0.4, phase: Math.random() * Math.PI * 2 };
-    ambientGroup.add(sprite);
-    floatingSymbols.push(sprite);
-  }
-
-  // ══════════════════════════════════════════════════════════════
-  // STAR / DUST PARTICLE FIELD
-  // ══════════════════════════════════════════════════════════════
-
-  // Particle field across height
   const particleGeo = new THREE.BufferGeometry();
-  const particleCount = 500;
+  const particleCount = 180;
   const posArray = new Float32Array(particleCount * 3);
   for (let i = 0; i < particleCount * 3; i += 3) {
-    posArray[i]     = (Math.random() - 0.5) * 100;
+    posArray[i]     = (Math.random() - 0.5) * 90;
     posArray[i + 1] = (Math.random() - 0.5) * 350;
-    posArray[i + 2] = (Math.random() - 0.5) * 60;
+    posArray[i + 2] = (Math.random() - 0.5) * 50;
   }
   particleGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-  const particleMat = new THREE.PointsMaterial({ size: 0.35, color: 0xc4b5fd, transparent: true, opacity: 0.65 });
+  const particleMat = new THREE.PointsMaterial({ size: 0.25, color: 0xc4b5fd, transparent: true, opacity: 0.35 });
   const particles = new THREE.Points(particleGeo, particleMat);
   ambientGroup.add(particles);
 
   // ══════════════════════════════════════════════════════════════
-  // INTERACTIVE NODE CONNECTIONS — Glowing lines between nearby nodes
-  // ══════════════════════════════════════════════════════════════
-
-  const connectionMat = new THREE.LineBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.15 });
-  const maxConnectionDist = 12;
-  let connectionLines = [];
-
-  function getNodePositions() {
-    const nodes = [];
-    codeCubes.forEach(c => {
-      const wp = new THREE.Vector3();
-      c.getWorldPosition(wp);
-      nodes.push(wp);
-    });
-    return nodes;
-  }
-
-  function updateConnections() {
-    // Remove old lines
-    connectionLines.forEach(l => scene.remove(l));
-    connectionLines = [];
-
-    const nodes = getNodePositions();
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        const dist = nodes[i].distanceTo(nodes[j]);
-        if (dist < maxConnectionDist) {
-          const geo = new THREE.BufferGeometry().setFromPoints([nodes[i], nodes[j]]);
-          const opacity = 0.15 * (1 - dist / maxConnectionDist);
-          const mat = new THREE.LineBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: opacity });
-          const line = new THREE.Line(geo, mat);
-          scene.add(line);
-          connectionLines.push(line);
-        }
-      }
-    }
-  }
-
-  // ══════════════════════════════════════════════════════════════
   // MOUSE & SCROLL TRACKING
   // ══════════════════════════════════════════════════════════════
-
   let mouseX = 0, mouseY = 0;
   let targetX = 0, targetY = 0;
   let frameCount = 0;
 
   window.addEventListener('mousemove', (e) => {
-    mouseX = (e.clientX - window.innerWidth / 2) * 0.025;
-    mouseY = (e.clientY - window.innerHeight / 2) * 0.025;
+    mouseX = (e.clientX - window.innerWidth / 2) * 0.02;
+    mouseY = (e.clientY - window.innerHeight / 2) * 0.02;
   }, { passive: true });
 
   window.addEventListener('resize', () => {
@@ -1976,95 +1711,56 @@ if (bg3dCanvas && window.THREE) {
   }, { passive: true });
 
   // ══════════════════════════════════════════════════════════════
-  // RENDER LOOP (Solution 1: Unified Smooth Parallax & Soft Fade)
+  // RENDER LOOP (Silky Smooth Parallax & Gentle Breathing Animation)
   // ══════════════════════════════════════════════════════════════
-
   let heroScrollY = 0;
 
   function render3dScene() {
     frameCount++;
     const time = frameCount * 0.01;
 
-    targetX += (mouseX - targetX) * 0.05;
-    targetY += (mouseY - targetY) * 0.05;
+    targetX += (mouseX - targetX) * 0.04;
+    targetY += (mouseY - targetY) * 0.04;
 
     // ── Unified Mouse Tilt for entire Hero Cluster ──
-    heroCluster.rotation.x = targetY * 0.003;
-    heroCluster.rotation.y = targetX * 0.003;
+    heroCluster.rotation.x = targetY * 0.002;
+    heroCluster.rotation.y = targetX * 0.002;
 
-    // ── Hero Object Rotations ──
-    heroTorus.rotation.x += 0.003;
-    heroTorus.rotation.y += 0.004;
+    // ── Smooth Hero Centerpiece Rotations & Fluid Breathing ──
+    heroTorus.rotation.x += 0.0012;
+    heroTorus.rotation.y += 0.0018;
+    heroTorus.position.y = 1.5 + Math.sin(time * 0.6) * 0.35;
 
-    heroTorus2.rotation.x += 0.003;
-    heroTorus2.rotation.y -= 0.003;
+    // Smooth Satellites Motion
+    heroIcosa.rotation.x += 0.002;
+    heroIcosa.rotation.y += 0.0025;
+    heroIcosa.position.y = -4.8 + Math.cos(time * 0.7) * 0.25;
 
-    heroRing.rotation.x += 0.002;
-    heroRing.rotation.z += 0.0015;
+    heroOcta.rotation.y += 0.002;
+    heroOcta.rotation.z += 0.0025;
+    heroOcta.position.y = 7.5 + Math.sin(time * 0.8 + 1.0) * 0.25;
 
-    heroIcosa.rotation.x += 0.004;
-    heroIcosa.rotation.y += 0.003;
-
-    heroOcta1.rotation.x += 0.003;
-    heroOcta1.rotation.z += 0.004;
-
-    heroDodeca.rotation.y += 0.004;
-    heroDodeca.rotation.z += 0.002;
-
-    heroTetra.rotation.x += 0.004;
-    heroTetra.rotation.y += 0.003;
-
-    heroSphere.rotation.y += 0.0015;
-
-    heroIcosa2.rotation.x += 0.003;
-    heroIcosa2.rotation.z += 0.002;
-
-    scatterOcta1.rotation.x += 0.002;
-    scatterOcta1.rotation.y += 0.003;
-
-    scatterOcta2.rotation.z += 0.003;
-
-    // ── Floating UI Window Cards Hover Physics ──
-    uiCard1.position.y = 5 + Math.sin(time * 1.2) * 0.3;
-    uiCard1.rotation.y = 0.4 + Math.cos(time * 0.8) * 0.06;
-
-    uiCard2.position.y = -7 + Math.sin(time * 1.0 + 1.5) * 0.25;
-    uiCard2.rotation.x = -0.3 + Math.sin(time * 0.7) * 0.05;
-
-    // ── Background Looping Infinity Torus Ribbon ──
-    bgRibbonMesh.rotation.x += 0.0015;
-    bgRibbonMesh.rotation.y += 0.002;
+    heroRing.rotation.z += 0.0008;
 
     // ── Section Object Rotations ──
     sectionObjects.forEach((obj, i) => {
-      obj.rotation.x += 0.003 + i * 0.0008;
-      obj.rotation.y += 0.002 + i * 0.0006;
+      obj.rotation.x += 0.0015 + i * 0.0004;
+      obj.rotation.y += 0.0012 + i * 0.0003;
     });
 
-    // ── Code Cubes: Hover Float + Slow Rotation ──
+    // ── Code Cubes: Slow Hover Float + Rotation ──
     codeCubes.forEach((cube) => {
-      cube.position.y = cube.userData.baseY + Math.sin(time * cube.userData.speed + cube.userData.speed) * 0.4;
-      cube.rotation.x += cube.userData.rotSpeed * 0.7;
-      cube.rotation.y += cube.userData.rotSpeed * 0.5;
+      cube.position.y = cube.userData.baseY + Math.sin(time * cube.userData.speed + cube.userData.speed) * 0.3;
+      cube.rotation.x += cube.userData.rotSpeed * 0.6;
+      cube.rotation.y += cube.userData.rotSpeed * 0.4;
     });
 
-    // ── Floating Symbols: Gentle Drift ──
-    floatingSymbols.forEach((sprite) => {
-      sprite.position.y = sprite.userData.baseY + Math.sin(time * sprite.userData.driftSpeed + sprite.userData.phase) * 0.5;
-    });
-
-    // ── Particles Drift ──
-    particles.rotation.y += 0.0003;
-
-    // ── Update Node Connections (throttled on mobile to save CPU) ──
-    const connectionCadence = isMobile3D ? 16 : 8;
-    if (frameCount % connectionCadence === 0) {
-      updateConnections();
-    }
+    // ── Particles Gentle Drift ──
+    particles.rotation.y += 0.00015;
 
     // ── Camera: Mouse Tilt Inertia ──
-    camera.position.x = targetX * 0.5;
-    camera.position.y = -targetY * 0.5;
+    camera.position.x = targetX * 0.35;
+    camera.position.y = -targetY * 0.35;
     camera.lookAt(scene.position);
 
     // ── Solution 1: Unified, Smooth & Gentle Parallax Scroll ──

@@ -323,13 +323,13 @@ body.light-theme .hero {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(59, 130, 246, 0.04) 1px, transparent 1px);
-  background-size: 54px 54px;
+    linear-gradient(rgba(59, 130, 246, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
   pointer-events: none;
   z-index: 1;
-  mask-image: radial-gradient(circle at 60% 40%, black 25%, transparent 80%);
-  -webkit-mask-image: radial-gradient(circle at 60% 40%, black 25%, transparent 80%);
+  mask-image: radial-gradient(circle at 60% 40%, black 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(circle at 60% 40%, black 20%, transparent 75%);
 }
 
 .hero-canvas {
