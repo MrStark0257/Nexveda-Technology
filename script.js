@@ -1579,15 +1579,15 @@ if (bg3dCanvas && window.THREE) {
   // ══════════════════════════════════════════════════════════════
   // EXECUTIVE CENTERPIECE — Architectural Glass Möbius Lattice
   // ══════════════════════════════════════════════════════════════
-  const heroTorusGeo = new THREE.TorusKnotGeometry(6.6, 1.35, 280, 42, 2, 3);
+  const heroTorusGeo = new THREE.TorusKnotGeometry(5.2, 1.15, 260, 38, 2, 3);
   const heroTorus = createGlassMeshWithGlow(heroTorusGeo, matCorpSapphire, matBlueprintWire);
-  heroTorus.position.set(13.5, 1.5, 0);
+  heroTorus.position.set(13.0, 0.5, 0);
   heroTorus.rotation.set(0.4, 0.6, 0.2);
   heroCluster.add(heroTorus);
 
   // Inner Server Heartbeat Core (Deep Sapphire Server Pulse)
   const coreGroup = new THREE.Group();
-  const innerCoreGeo = new THREE.SphereGeometry(2.0, 32, 32);
+  const innerCoreGeo = new THREE.SphereGeometry(1.6, 32, 32);
   const innerCoreMat = new THREE.MeshBasicMaterial({
     color: 0x1d4ed8,
     transparent: true,
@@ -1597,7 +1597,7 @@ if (bg3dCanvas && window.THREE) {
   const innerCore = new THREE.Mesh(innerCoreGeo, innerCoreMat);
   coreGroup.add(innerCore);
 
-  const auraCoreGeo = new THREE.SphereGeometry(2.8, 32, 32);
+  const auraCoreGeo = new THREE.SphereGeometry(2.3, 32, 32);
   const auraCoreMat = new THREE.MeshBasicMaterial({
     color: 0x2563eb,
     transparent: true,
@@ -1609,18 +1609,18 @@ if (bg3dCanvas && window.THREE) {
   heroTorus.add(coreGroup);
 
   // ── GLOBAL CLOUD ORBITAL DATA TRACES (Representing Worldwide Infrastructure) ──
-  const globalOrbit1Geo = new THREE.TorusGeometry(9.4, 0.035, 16, 140);
+  const globalOrbit1Geo = new THREE.TorusGeometry(7.6, 0.035, 16, 140);
   const globalOrbit1Mat = new THREE.MeshBasicMaterial({
     color: 0x60a5fa,
     transparent: true,
     opacity: 0.30
   });
   const globalOrbit1 = new THREE.Mesh(globalOrbit1Geo, globalOrbit1Mat);
-  globalOrbit1.position.set(13.5, 1.5, 0);
+  globalOrbit1.position.set(13.0, 0.5, 0);
   globalOrbit1.rotation.set(Math.PI / 3.2, 0.3, 0);
   heroCluster.add(globalOrbit1);
 
-  const dataNode1Geo = new THREE.SphereGeometry(0.24, 16, 16);
+  const dataNode1Geo = new THREE.SphereGeometry(0.22, 16, 16);
   const dataNode1Mat = new THREE.MeshBasicMaterial({
     color: 0xffffff,
     blending: THREE.AdditiveBlending
@@ -1628,18 +1628,18 @@ if (bg3dCanvas && window.THREE) {
   const dataNode1 = new THREE.Mesh(dataNode1Geo, dataNode1Mat);
   globalOrbit1.add(dataNode1);
 
-  const globalOrbit2Geo = new THREE.TorusGeometry(10.3, 0.035, 16, 140);
+  const globalOrbit2Geo = new THREE.TorusGeometry(8.5, 0.035, 16, 140);
   const globalOrbit2Mat = new THREE.MeshBasicMaterial({
     color: 0x3b82f6,
     transparent: true,
     opacity: 0.25
   });
   const globalOrbit2 = new THREE.Mesh(globalOrbit2Geo, globalOrbit2Mat);
-  globalOrbit2.position.set(13.5, 1.5, 0);
+  globalOrbit2.position.set(13.0, 0.5, 0);
   globalOrbit2.rotation.set(-Math.PI / 3.6, -0.35, 0.2);
   heroCluster.add(globalOrbit2);
 
-  const dataNode2Geo = new THREE.SphereGeometry(0.24, 16, 16);
+  const dataNode2Geo = new THREE.SphereGeometry(0.22, 16, 16);
   const dataNode2Mat = new THREE.MeshBasicMaterial({
     color: 0x93c5fd,
     blending: THREE.AdditiveBlending
@@ -1648,19 +1648,19 @@ if (bg3dCanvas && window.THREE) {
   globalOrbit2.add(dataNode2);
 
   // ── DISTRIBUTED DATA NODES (Architectural Crystalline Polyhedra) ──
-  const heroOctaGeo = new THREE.OctahedronGeometry(2.3, 0);
+  const heroOctaGeo = new THREE.OctahedronGeometry(2.0, 0);
   const heroOcta = createGlassMeshWithGlow(heroOctaGeo, matCorpAzure, matBlueprintWire);
-  heroOcta.position.set(22.5, 7.8, -1.5);
+  heroOcta.position.set(20.5, 6.0, -1.5);
   heroCluster.add(heroOcta);
 
-  const heroIcosaGeo = new THREE.IcosahedronGeometry(2.7, 1);
+  const heroIcosaGeo = new THREE.IcosahedronGeometry(2.4, 1);
   const heroIcosa = createGlassMeshWithGlow(heroIcosaGeo, matCorpSapphire, matBlueprintWire);
-  heroIcosa.position.set(4.2, -5.2, 1.8);
+  heroIcosa.position.set(5.5, -4.5, 1.2);
   heroCluster.add(heroIcosa);
 
-  const heroDodecaGeo = new THREE.DodecahedronGeometry(2.0, 0);
+  const heroDodecaGeo = new THREE.DodecahedronGeometry(1.8, 0);
   const heroDodeca = createGlassMeshWithGlow(heroDodecaGeo, matCorpAzure, matBlueprintWire);
-  heroDodeca.position.set(21.0, -6.5, -4.5);
+  heroDodeca.position.set(19.0, -5.2, -3.5);
   heroCluster.add(heroDodeca);
 
   // ══════════════════════════════════════════════════════════════
@@ -1814,7 +1814,7 @@ if (bg3dCanvas && window.THREE) {
     // ── Smooth Hero Centerpiece Rotations & Fluid Breathing ──
     heroTorus.rotation.x += 0.0009;
     heroTorus.rotation.y += 0.0014;
-    heroTorus.position.y = 1.5 + Math.sin(time * 0.4) * 0.30;
+    heroTorus.position.y = 0.5 + Math.sin(time * 0.4) * 0.25;
 
     // ── Server Core Pulse (Calm 3s Heartbeat) ──
     const corePulse = 1.0 + Math.sin(time * 1.5) * 0.05;
@@ -1824,9 +1824,9 @@ if (bg3dCanvas && window.THREE) {
     globalOrbit1.rotation.z += 0.0016;
     globalOrbit2.rotation.z -= 0.0014;
     const nodeAngle1 = time * 0.5;
-    dataNode1.position.set(Math.cos(nodeAngle1) * 9.4, Math.sin(nodeAngle1) * 9.4, 0);
+    dataNode1.position.set(Math.cos(nodeAngle1) * 7.6, Math.sin(nodeAngle1) * 7.6, 0);
     const nodeAngle2 = -time * 0.45;
-    dataNode2.position.set(Math.cos(nodeAngle2) * 10.3, Math.sin(nodeAngle2) * 10.3, 0);
+    dataNode2.position.set(Math.cos(nodeAngle2) * 8.5, Math.sin(nodeAngle2) * 8.5, 0);
 
     // ── Interactive Cursor Studio Light ──
     mouseStudioLight.position.x = 14 + targetX * 0.5;
@@ -1835,15 +1835,15 @@ if (bg3dCanvas && window.THREE) {
     // ── Smooth Crystalline Satellites Motion ──
     heroOcta.rotation.y += 0.0020;
     heroOcta.rotation.z += 0.0015;
-    heroOcta.position.y = 7.8 + Math.sin(time * 0.5) * 0.22;
+    heroOcta.position.y = 6.0 + Math.sin(time * 0.5) * 0.20;
 
     heroIcosa.rotation.x += 0.0016;
     heroIcosa.rotation.y += 0.0020;
-    heroIcosa.position.y = -5.2 + Math.cos(time * 0.45) * 0.22;
+    heroIcosa.position.y = -4.5 + Math.cos(time * 0.45) * 0.20;
 
     heroDodeca.rotation.x += 0.0015;
     heroDodeca.rotation.z += 0.0018;
-    heroDodeca.position.y = -6.5 + Math.sin(time * 0.5 + 1.2) * 0.20;
+    heroDodeca.position.y = -5.2 + Math.sin(time * 0.5 + 1.2) * 0.18;
 
     // ── Section Object Rotations ──
     sectionObjects.forEach((obj, i) => {
