@@ -682,6 +682,67 @@ body.light-theme .btn-secondary-pill:hover {
   border-color: rgba(15, 23, 42, 0.3);
 }
 
+/* Enterprise Global Delivery Trust Strip */
+.hero-trust-strip {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 2.4rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  flex-wrap: wrap;
+}
+body.light-theme .hero-trust-strip {
+  border-top-color: rgba(15, 23, 42, 0.1);
+}
+.trust-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.trust-stat-val {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: -0.02em;
+  font-family: var(--font-heading, 'Plus Jakarta Sans', sans-serif);
+}
+body.light-theme .trust-stat-val {
+  color: #0f172a;
+}
+.trust-stat-lbl {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+body.light-theme .trust-stat-lbl {
+  color: #64748b;
+}
+.trust-stat-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.12);
+}
+body.light-theme .trust-stat-divider {
+  background: rgba(15, 23, 42, 0.12);
+}
+.status-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+  display: inline-block;
+  margin-right: 0.5rem;
+  animation: statusPulse 2s infinite ease-in-out;
+}
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.85); }
+}
+
 /* Scroll Indicator */
 .hero-scroll {
   position: absolute;
@@ -3903,39 +3964,16 @@ body.light-theme .t-body {
 
 .hero-title-highlight {
   background: linear-gradient(
-    90deg,
-    #38bdf8 0%,
-    #3b82f6 20%,
-    #a855f7 40%,
-    #ec4899 60%,
-    #34d399 80%,
-    #38bdf8 100%
+    135deg,
+    #60a5fa 0%,
+    #3b82f6 25%,
+    #818cf8 60%,
+    #93c5fd 100%
   );
-  background-size: 300% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: liveMultiColorMotion 5s linear infinite;
-  filter: drop-shadow(0 0 25px rgba(56, 189, 248, 0.5));
-}
-
-@keyframes liveMultiColorMotion {
-  0% {
-    background-position: 0% 50%;
-    filter: drop-shadow(0 0 25px rgba(56, 189, 248, 0.6));
-  }
-  33% {
-    background-position: 50% 50%;
-    filter: drop-shadow(0 0 25px rgba(168, 85, 247, 0.6));
-  }
-  66% {
-    background-position: 100% 50%;
-    filter: drop-shadow(0 0 25px rgba(236, 72, 153, 0.6));
-  }
-  100% {
-    background-position: 0% 50%;
-    filter: drop-shadow(0 0 25px rgba(56, 189, 248, 0.6));
-  }
+  filter: drop-shadow(0 0 28px rgba(59, 130, 246, 0.40));
 }
 
 /* 2. About Section Micro-Animations */
@@ -4922,7 +4960,7 @@ section,
   z-index: 0;
 }
 
-/* Deep Cyan Glow behind "Digital Solutions" */
+/* Deep Enterprise Azure Glow */
 .glow-cyan-ambient {
   position: absolute;
   top: 20%;
@@ -4930,13 +4968,13 @@ section,
   width: 580px;
   height: 580px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.35) 0%, rgba(59, 130, 246, 0.18) 50%, transparent 75%);
-  filter: blur(85px);
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(37, 99, 235, 0.10) 50%, transparent 75%);
+  filter: blur(90px);
   pointer-events: none;
   z-index: 0;
 }
 
-/* Deep Vivid Magenta / Violet Ambient Glow behind 3D Sculpture */
+/* Deep Executive Cobalt / Sapphire Ambient Glow behind 3D Sculpture */
 .glow-magenta-ambient {
   position: absolute;
   top: 8%;
@@ -4944,7 +4982,7 @@ section,
   width: 720px;
   height: 720px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(217, 70, 239, 0.32) 0%, rgba(139, 92, 246, 0.22) 38%, rgba(6, 182, 212, 0.12) 65%, transparent 80%);
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.25) 0%, rgba(30, 58, 138, 0.15) 45%, rgba(15, 23, 42, 0.05) 70%, transparent 80%);
   filter: blur(100px);
   pointer-events: none;
   z-index: 0;
