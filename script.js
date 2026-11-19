@@ -1475,15 +1475,24 @@ if (bg3dCanvas && window.THREE) {
   dirLight2.position.set(-20, -15, -10);
   scene.add(dirLight2);
 
-  const pointLight1 = new THREE.PointLight(0x7c3aed, 2.5, 60);
-  pointLight1.position.set(15, 5, 10);
+  const pointLight1 = new THREE.PointLight(0xa855f7, 2.8, 65);
+  pointLight1.position.set(16, 6, 12);
   scene.add(pointLight1);
 
-  const pointLight2 = new THREE.PointLight(0x06b6d4, 1.8, 50);
-  pointLight2.position.set(-10, -8, 5);
+  const pointLight2 = new THREE.PointLight(0x06b6d4, 2.2, 55);
+  pointLight2.position.set(-12, -8, 8);
   scene.add(pointLight2);
 
-  // ── FRESNEL SHADER MATERIALS ──
+  // Dynamic interactive lights that follow the mouse
+  const mouseLightCyan = new THREE.PointLight(0x00f5ff, 3.2, 45);
+  mouseLightCyan.position.set(14, 2, 14);
+  scene.add(mouseLightCyan);
+
+  const mouseLightMagenta = new THREE.PointLight(0xf43f5e, 2.8, 45);
+  mouseLightMagenta.position.set(10, -4, 12);
+  scene.add(mouseLightMagenta);
+
+  // ── ADVANCED MULTI-SPECTRAL IRIDESCENT FRESNEL SHADER ──
   const fresnelVS = `
     varying vec3 vNormal;
     varying vec3 vViewPos;
@@ -1495,39 +1504,70 @@ if (bg3dCanvas && window.THREE) {
     }
   `;
   const fresnelFS = `
-    uniform vec3 color1;
-    uniform vec3 color2;
-    uniform float baseOpacity;
+    uniform vec3 colorCore;
+    uniform vec3 colorMid;
+    uniform vec3 colorRim;
+    uniform float opacity;
+    uniform float fresnelPower;
     varying vec3 vNormal;
     varying vec3 vViewPos;
     void main() {
       vec3 n = normalize(vNormal);
       vec3 v = normalize(vViewPos);
-      float fresnel = pow(1.0 - abs(dot(v, n)), 2.8);
-      vec3 col = mix(color1, color2, fresnel);
-      gl_FragColor = vec4(col, baseOpacity + fresnel * 0.55);
+      float fresnel = clamp(1.0 - abs(dot(v, n)), 0.0, 1.0);
+      float fTerm = pow(fresnel, fresnelPower);
+      
+      // Dynamic chromatic gradient: Core -> Mid -> Rim
+      vec3 col = mix(colorCore, colorMid, smoothstep(0.05, 0.55, fTerm));
+      col = mix(col, colorRim, smoothstep(0.50, 1.0, fTerm));
+      
+      // Specular highlight gleam
+      vec3 lightDir = normalize(vec3(0.6, 0.7, 0.9));
+      vec3 halfVec = normalize(lightDir + v);
+      float spec = pow(max(dot(n, halfVec), 0.0), 28.0);
+      col += vec3(0.9, 0.95, 1.0) * spec * 0.55;
+      
+      gl_FragColor = vec4(col, clamp(opacity + fTerm * 0.58, 0.0, 0.96));
     }
   `;
 
-  function makeFresnel(c1, c2, wire, opacity) {
+  function createIridescentMaterial(colorCore, colorMid, colorRim, opacity = 0.36, fresnelPower = 2.2) {
     return new THREE.ShaderMaterial({
       vertexShader: fresnelVS,
       fragmentShader: fresnelFS,
       uniforms: {
-        color1: { value: new THREE.Color(c1) },
-        color2: { value: new THREE.Color(c2) },
-        baseOpacity: { value: opacity }
+        colorCore:    { value: new THREE.Color(colorCore) },
+        colorMid:     { value: new THREE.Color(colorMid) },
+        colorRim:     { value: new THREE.Color(colorRim) },
+        opacity:      { value: opacity },
+        fresnelPower: { value: fresnelPower }
       },
-      wireframe: wire,
       transparent: true,
-      depthWrite: false
+      depthWrite: false,
+      side: THREE.DoubleSide
     });
   }
 
-  // ── REFINED SMOOTH FRESNEL & GLASS SHADERS ──
-  const matSmoothGlassViolet = makeFresnel(0x8b5cf6, 0x38bdf8, false, 0.28);
-  const matSmoothGlassCyan   = makeFresnel(0x06b6d4, 0xc084fc, false, 0.24);
-  const matSubtleContour     = makeFresnel(0x38bdf8, 0xa855f7, true, 0.08); // Ultra-faint architectural outline
+  // Iridescent Shaders
+  const matHeroIridescentViolet = createIridescentMaterial(0x2e1065, 0xa855f7, 0x00f5ff, 0.38, 2.0);
+  const matHeroIridescentCyan   = createIridescentMaterial(0x083344, 0x06b6d4, 0xf43f5e, 0.36, 2.1);
+
+  // Glowing Holographic Wireframe Contours (with Additive Blending for neon radiance)
+  const matGlowWireCyan = new THREE.MeshBasicMaterial({
+    color: 0x00f5ff,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.28,
+    blending: THREE.AdditiveBlending
+  });
+
+  const matGlowWireMagenta = new THREE.MeshBasicMaterial({
+    color: 0xf43f5e,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.26,
+    blending: THREE.AdditiveBlending
+  });
 
   // ── UNIFIED 3D HERO CLUSTER & AMBIENT GROUPS ──
   const heroCluster = new THREE.Group();
@@ -1536,86 +1576,129 @@ if (bg3dCanvas && window.THREE) {
   const ambientGroup = new THREE.Group();
   scene.add(ambientGroup);
 
-  // ── SMOOTH TRANSLUCENT GLASS MATERIALS WITH SOFT SPECULAR HIGHLIGHTS ──
-  const glassCoreMatViolet = new THREE.MeshPhongMaterial({
-    color: 0x6d28d9,
-    emissive: 0x1e1b4b,
-    specular: 0x38bdf8,
-    shininess: 180,
-    transparent: true,
-    opacity: 0.40,
-    side: THREE.DoubleSide
-  });
-
-  const glassCoreMatCyan = new THREE.MeshPhongMaterial({
-    color: 0x0284c7,
-    emissive: 0x082f49,
-    specular: 0xc084fc,
-    shininess: 180,
-    transparent: true,
-    opacity: 0.36,
-    side: THREE.DoubleSide
-  });
-
-  // Helper to create a sleek 3D glass object with an optional soft whisper-wireframe
-  function createCleanGlassMesh(geometry, glassMat, withContour = true) {
+  // Helper to create glowing glass sculpture with holographic contour
+  function createGlassMeshWithGlow(geometry, glassShaderMat, wireMat = matGlowWireCyan) {
     const group = new THREE.Group();
-    const glassMesh = new THREE.Mesh(geometry, glassMat);
-    group.add(glassMesh);
+    const bodyMesh = new THREE.Mesh(geometry, glassShaderMat);
+    group.add(bodyMesh);
 
-    if (withContour) {
-      const wireMesh = new THREE.Mesh(geometry.clone(), matSubtleContour);
-      wireMesh.scale.setScalar(1.008);
+    if (wireMat) {
+      const wireMesh = new THREE.Mesh(geometry.clone(), wireMat);
+      wireMesh.scale.setScalar(1.006);
       group.add(wireMesh);
     }
     return group;
   }
 
   // ══════════════════════════════════════════════════════════════
-  // HERO CENTERPIECE — Elegant, Flowing Glass Torus Knot (Clean & Fluid)
+  // HERO CENTERPIECE — Magnificent Iridescent Glass Sculpture
   // ══════════════════════════════════════════════════════════════
-  const heroTorusGeo = new THREE.TorusKnotGeometry(6.4, 1.5, 240, 36, 2, 3);
-  const heroTorus = createCleanGlassMesh(heroTorusGeo, glassCoreMatViolet, true);
+  const heroTorusGeo = new THREE.TorusKnotGeometry(6.6, 1.45, 260, 38, 2, 3);
+  const heroTorus = createGlassMeshWithGlow(heroTorusGeo, matHeroIridescentViolet, matGlowWireCyan);
   heroTorus.position.set(13.5, 1.5, 0);
   heroTorus.rotation.set(0.4, 0.6, 0.2);
   heroCluster.add(heroTorus);
 
-  // Satellite 1: Smooth Glass Icosahedron (balanced lower-left)
-  const heroIcosaGeo = new THREE.IcosahedronGeometry(2.8, 1);
-  const heroIcosa = createCleanGlassMesh(heroIcosaGeo, glassCoreMatCyan, true);
-  heroIcosa.position.set(4.2, -4.8, 1.5);
-  heroCluster.add(heroIcosa);
+  // Inner Pulsing Quantum Heart inside the Torus Knot
+  const coreGroup = new THREE.Group();
+  const innerCoreGeo = new THREE.SphereGeometry(2.1, 32, 32);
+  const innerCoreMat = new THREE.MeshBasicMaterial({
+    color: 0xec4899,
+    transparent: true,
+    opacity: 0.55,
+    blending: THREE.AdditiveBlending
+  });
+  const innerCore = new THREE.Mesh(innerCoreGeo, innerCoreMat);
+  coreGroup.add(innerCore);
 
-  // Satellite 2: Floating Octahedron Crystal (balanced upper-right)
-  const heroOctaGeo = new THREE.OctahedronGeometry(2.2, 0);
-  const heroOcta = createCleanGlassMesh(heroOctaGeo, glassCoreMatViolet, true);
-  heroOcta.position.set(21.5, 7.5, -2);
+  const auraCoreGeo = new THREE.SphereGeometry(3.2, 32, 32);
+  const auraCoreMat = new THREE.MeshBasicMaterial({
+    color: 0x8b5cf6,
+    transparent: true,
+    opacity: 0.22,
+    blending: THREE.AdditiveBlending
+  });
+  const auraCore = new THREE.Mesh(auraCoreGeo, auraCoreMat);
+  coreGroup.add(auraCore);
+  heroTorus.add(coreGroup);
+
+  // ── GYROSCOPIC ORBITAL ENERGY RINGS (Futuristic & Mesmerizing) ──
+  const gyroRing1Geo = new THREE.TorusGeometry(9.2, 0.055, 16, 120);
+  const gyroRing1Mat = new THREE.MeshBasicMaterial({
+    color: 0x00f5ff,
+    transparent: true,
+    opacity: 0.70,
+    blending: THREE.AdditiveBlending
+  });
+  const gyroRing1 = new THREE.Mesh(gyroRing1Geo, gyroRing1Mat);
+  gyroRing1.position.set(13.5, 1.5, 0);
+  gyroRing1.rotation.set(Math.PI / 3, 0.35, 0);
+  heroCluster.add(gyroRing1);
+
+  const gyroBead1Geo = new THREE.SphereGeometry(0.38, 16, 16);
+  const gyroBead1Mat = new THREE.MeshBasicMaterial({
+    color: 0x38bdf8,
+    blending: THREE.AdditiveBlending
+  });
+  const gyroBead1 = new THREE.Mesh(gyroBead1Geo, gyroBead1Mat);
+  gyroRing1.add(gyroBead1);
+
+  const gyroRing2Geo = new THREE.TorusGeometry(10.2, 0.055, 16, 120);
+  const gyroRing2Mat = new THREE.MeshBasicMaterial({
+    color: 0xf43f5e,
+    transparent: true,
+    opacity: 0.60,
+    blending: THREE.AdditiveBlending
+  });
+  const gyroRing2 = new THREE.Mesh(gyroRing2Geo, gyroRing2Mat);
+  gyroRing2.position.set(13.5, 1.5, 0);
+  gyroRing2.rotation.set(-Math.PI / 3.2, -0.4, 0.3);
+  heroCluster.add(gyroRing2);
+
+  const gyroBead2Geo = new THREE.SphereGeometry(0.38, 16, 16);
+  const gyroBead2Mat = new THREE.MeshBasicMaterial({
+    color: 0xf43f5e,
+    blending: THREE.AdditiveBlending
+  });
+  const gyroBead2 = new THREE.Mesh(gyroBead2Geo, gyroBead2Mat);
+  gyroRing2.add(gyroBead2);
+
+  // ── CRYSTALLINE SATELLITES (Balanced Composition & Clean Depth) ──
+  // Satellite 1: Glowing Octahedron Crystal (Top-Right)
+  const heroOctaGeo = new THREE.OctahedronGeometry(2.3, 0);
+  const heroOcta = createGlassMeshWithGlow(heroOctaGeo, matHeroIridescentCyan, matGlowWireCyan);
+  heroOcta.position.set(22.5, 7.8, -1.5);
   heroCluster.add(heroOcta);
 
-  // Deep Background Glass Ring (adds cinematic depth without visual clutter)
-  const heroRingGeo = new THREE.TorusGeometry(8.5, 0.35, 16, 90);
-  const heroRing = createCleanGlassMesh(heroRingGeo, glassCoreMatCyan, false);
-  heroRing.position.set(16, 0, -10);
-  heroRing.rotation.set(0.6, 0.4, 0.2);
-  heroCluster.add(heroRing);
+  // Satellite 2: Glowing Icosahedron Crystal (Lower-Left)
+  const heroIcosaGeo = new THREE.IcosahedronGeometry(2.8, 1);
+  const heroIcosa = createGlassMeshWithGlow(heroIcosaGeo, matHeroIridescentViolet, matGlowWireMagenta);
+  heroIcosa.position.set(4.2, -5.2, 1.8);
+  heroCluster.add(heroIcosa);
+
+  // Satellite 3: Deep Dodecahedron Crystal (Depth Balance)
+  const heroDodecaGeo = new THREE.DodecahedronGeometry(2.0, 0);
+  const heroDodeca = createGlassMeshWithGlow(heroDodecaGeo, matHeroIridescentCyan, matGlowWireCyan);
+  heroDodeca.position.set(21.0, -6.5, -4.5);
+  heroCluster.add(heroDodeca);
 
   // ══════════════════════════════════════════════════════════════
   // SECTION OBJECTS — Spread across page height for smooth scrolling
   // ══════════════════════════════════════════════════════════════
   const sectionObjects = [];
   const sectionConfigs = [
-    { geo: new THREE.IcosahedronGeometry(4, 1),    mat: glassCoreMatCyan,   pos: [-17, -28, -4] },
-    { geo: new THREE.OctahedronGeometry(4.5, 0),   mat: glassCoreMatViolet, pos: [17, -55, -2] },
-    { geo: new THREE.TorusGeometry(5, 1.2, 16, 50),mat: glassCoreMatViolet, pos: [-15, -90, -4] },
-    { geo: new THREE.DodecahedronGeometry(4.2, 0), mat: glassCoreMatViolet, pos: [16, -125, -3] },
-    { geo: new THREE.OctahedronGeometry(4.8, 1),   mat: glassCoreMatCyan,   pos: [-16, -155, -3] },
-    { geo: new THREE.TorusKnotGeometry(3.6, 0.9, 80, 16), mat: glassCoreMatViolet, pos: [15, -190, -2] },
-    { geo: new THREE.IcosahedronGeometry(4.5, 2),  mat: glassCoreMatCyan,   pos: [-16, -220, -4] },
-    { geo: new THREE.DodecahedronGeometry(5.0, 0), mat: glassCoreMatViolet, pos: [16, -255, -3] }
+    { geo: new THREE.IcosahedronGeometry(3.8, 1),    mat: matHeroIridescentCyan,   wire: matGlowWireCyan,    pos: [-17, -28, -4] },
+    { geo: new THREE.OctahedronGeometry(4.2, 0),     mat: matHeroIridescentViolet, wire: matGlowWireMagenta, pos: [17, -55, -2] },
+    { geo: new THREE.TorusGeometry(4.8, 1.1, 16, 50),mat: matHeroIridescentViolet, wire: matGlowWireCyan,    pos: [-15, -90, -4] },
+    { geo: new THREE.DodecahedronGeometry(4.0, 0),   mat: matHeroIridescentCyan,   wire: matGlowWireMagenta, pos: [16, -125, -3] },
+    { geo: new THREE.OctahedronGeometry(4.5, 1),     mat: matHeroIridescentCyan,   wire: matGlowWireCyan,    pos: [-16, -155, -3] },
+    { geo: new THREE.TorusKnotGeometry(3.5, 0.85, 80, 16), mat: matHeroIridescentViolet, wire: matGlowWireMagenta, pos: [15, -190, -2] },
+    { geo: new THREE.IcosahedronGeometry(4.2, 2),    mat: matHeroIridescentCyan,   wire: matGlowWireCyan,    pos: [-16, -220, -4] },
+    { geo: new THREE.DodecahedronGeometry(4.8, 0),   mat: matHeroIridescentViolet, wire: matGlowWireMagenta, pos: [16, -255, -3] }
   ];
 
   sectionConfigs.forEach(cfg => {
-    const meshGroup = createCleanGlassMesh(cfg.geo, cfg.mat, true);
+    const meshGroup = createGlassMeshWithGlow(cfg.geo, cfg.mat, cfg.wire);
     meshGroup.position.set(...cfg.pos);
     ambientGroup.add(meshGroup);
     sectionObjects.push(meshGroup);
@@ -1659,13 +1742,13 @@ if (bg3dCanvas && window.THREE) {
 
   const codeCubes = [];
   cubeSymbols.forEach(cfg => {
-    const tex = createCodeCubeTexture(cfg.sym, 'rgba(124, 58, 237, 0.2)', 'rgba(192, 132, 252, 0.8)');
+    const tex = createCodeCubeTexture(cfg.sym, 'rgba(124, 58, 237, 0.22)', 'rgba(192, 132, 252, 0.85)');
     const mat = new THREE.MeshPhongMaterial({
       map: tex,
       transparent: true,
-      opacity: 0.45,
+      opacity: 0.50,
       specular: 0x38bdf8,
-      shininess: 120,
+      shininess: 140,
       side: THREE.DoubleSide
     });
     const cube = new THREE.Mesh(new THREE.BoxGeometry(cfg.size, cfg.size, cfg.size), mat);
@@ -1677,18 +1760,41 @@ if (bg3dCanvas && window.THREE) {
   });
 
   // ══════════════════════════════════════════════════════════════
-  // SOFT AMBIENT STAR / DUST PARTICLES (Gentle & Clean)
+  // TWINKLING COSMIC STARFIELD (Multi-colored Glowing Gems)
   // ══════════════════════════════════════════════════════════════
   const particleGeo = new THREE.BufferGeometry();
-  const particleCount = 180;
+  const particleCount = 220;
   const posArray = new Float32Array(particleCount * 3);
-  for (let i = 0; i < particleCount * 3; i += 3) {
-    posArray[i]     = (Math.random() - 0.5) * 90;
-    posArray[i + 1] = (Math.random() - 0.5) * 350;
-    posArray[i + 2] = (Math.random() - 0.5) * 50;
+  const colorArray = new Float32Array(particleCount * 3);
+  const starColors = [
+    new THREE.Color(0x38bdf8), // cyan
+    new THREE.Color(0xd946ef), // magenta
+    new THREE.Color(0xa78bfa), // violet
+    new THREE.Color(0x34d399), // emerald accent
+    new THREE.Color(0xffffff)  // star white
+  ];
+
+  for (let i = 0; i < particleCount; i++) {
+    const i3 = i * 3;
+    posArray[i3]     = (Math.random() - 0.5) * 95;
+    posArray[i3 + 1] = (Math.random() - 0.5) * 360;
+    posArray[i3 + 2] = (Math.random() - 0.5) * 45;
+
+    const chosenColor = starColors[Math.floor(Math.random() * starColors.length)];
+    colorArray[i3]     = chosenColor.r;
+    colorArray[i3 + 1] = chosenColor.g;
+    colorArray[i3 + 2] = chosenColor.b;
   }
+
   particleGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-  const particleMat = new THREE.PointsMaterial({ size: 0.25, color: 0xc4b5fd, transparent: true, opacity: 0.35 });
+  particleGeo.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+  const particleMat = new THREE.PointsMaterial({
+    size: 0.35,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.65,
+    blending: THREE.AdditiveBlending
+  });
   const particles = new THREE.Points(particleGeo, particleMat);
   ambientGroup.add(particles);
 
@@ -1727,20 +1833,40 @@ if (bg3dCanvas && window.THREE) {
     heroCluster.rotation.y = targetX * 0.002;
 
     // ── Smooth Hero Centerpiece Rotations & Fluid Breathing ──
-    heroTorus.rotation.x += 0.0012;
-    heroTorus.rotation.y += 0.0018;
-    heroTorus.position.y = 1.5 + Math.sin(time * 0.6) * 0.35;
+    heroTorus.rotation.x += 0.0014;
+    heroTorus.rotation.y += 0.0020;
+    heroTorus.position.y = 1.5 + Math.sin(time * 0.6) * 0.40;
 
-    // Smooth Satellites Motion
-    heroIcosa.rotation.x += 0.002;
-    heroIcosa.rotation.y += 0.0025;
-    heroIcosa.position.y = -4.8 + Math.cos(time * 0.7) * 0.25;
+    // ── Quantum Heart Core Pulse ──
+    const corePulse = 1.0 + Math.sin(time * 2.2) * 0.08;
+    coreGroup.scale.set(corePulse, corePulse, corePulse);
 
-    heroOcta.rotation.y += 0.002;
-    heroOcta.rotation.z += 0.0025;
-    heroOcta.position.y = 7.5 + Math.sin(time * 0.8 + 1.0) * 0.25;
+    // ── Gyroscopic Rings Spin & Orbiting Beads Movement ──
+    gyroRing1.rotation.z += 0.0028;
+    gyroRing2.rotation.z -= 0.0022;
+    const beadAngle1 = time * 0.75;
+    gyroBead1.position.set(Math.cos(beadAngle1) * 9.2, Math.sin(beadAngle1) * 9.2, 0);
+    const beadAngle2 = -time * 0.65;
+    gyroBead2.position.set(Math.cos(beadAngle2) * 10.2, Math.sin(beadAngle2) * 10.2, 0);
 
-    heroRing.rotation.z += 0.0008;
+    // ── Interactive Mouse Lights (Real-time specular glints) ──
+    mouseLightCyan.position.x = 14 + targetX * 0.6;
+    mouseLightCyan.position.y = 2 - targetY * 0.6;
+    mouseLightMagenta.position.x = 12 - targetX * 0.5;
+    mouseLightMagenta.position.y = -3 + targetY * 0.5;
+
+    // ── Smooth Crystalline Satellites Motion ──
+    heroOcta.rotation.y += 0.003;
+    heroOcta.rotation.z += 0.002;
+    heroOcta.position.y = 7.8 + Math.sin(time * 0.75) * 0.3;
+
+    heroIcosa.rotation.x += 0.0025;
+    heroIcosa.rotation.y += 0.003;
+    heroIcosa.position.y = -5.2 + Math.cos(time * 0.65) * 0.3;
+
+    heroDodeca.rotation.x += 0.002;
+    heroDodeca.rotation.z += 0.0025;
+    heroDodeca.position.y = -6.5 + Math.sin(time * 0.8 + 1.2) * 0.25;
 
     // ── Section Object Rotations ──
     sectionObjects.forEach((obj, i) => {
@@ -1755,8 +1881,9 @@ if (bg3dCanvas && window.THREE) {
       cube.rotation.y += cube.userData.rotSpeed * 0.4;
     });
 
-    // ── Particles Gentle Drift ──
-    particles.rotation.y += 0.00015;
+    // ── Cosmic Starfield Twinkle & Drift ──
+    particles.rotation.y += 0.00018;
+    particleMat.opacity = 0.55 + Math.sin(time * 1.6) * 0.15;
 
     // ── Camera: Mouse Tilt Inertia ──
     camera.position.x = targetX * 0.35;
@@ -1778,8 +1905,8 @@ if (bg3dCanvas && window.THREE) {
     // Soft fade as user scrolls past hero so 3D objects never distract from reading content
     if (bg3dCanvas) {
       const exitProgress = Math.min(1, Math.max(0, (scrollY - 80) / (heroHeight * 0.75)));
-      // Dims from 0.9 in hero down to 0.22 subtle background ambiance
-      bg3dCanvas.style.opacity = (0.9 - exitProgress * 0.68).toFixed(3);
+      // Dims from 0.95 in hero down to 0.25 subtle background ambiance
+      bg3dCanvas.style.opacity = (0.95 - exitProgress * 0.70).toFixed(3);
     }
 
     renderer.render(scene, camera);
