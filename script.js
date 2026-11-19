@@ -1467,31 +1467,33 @@ if (bg3dCanvas && window.THREE) {
   // Rich Multi-Point Lighting
   scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
-  // Executive Studio 3-Point Lighting Architecture
-  scene.add(new THREE.AmbientLight(0xffffff, 0.60));
-
-  // Pure White Key Light for razor-sharp specular gleams
-  const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.4);
-  dirLight1.position.set(24, 28, 22);
+  const dirLight1 = new THREE.DirectionalLight(0xc084fc, 1.8);
+  dirLight1.position.set(25, 25, 20);
   scene.add(dirLight1);
 
-  // Deep Enterprise Cobalt Backlight
-  const dirLight2 = new THREE.DirectionalLight(0x2563eb, 1.5);
-  dirLight2.position.set(-20, -15, -12);
+  const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 1.2);
+  dirLight2.position.set(-20, -15, -10);
   scene.add(dirLight2);
 
-  // Deep Sapphire Point Light for volumetric radiance
-  const pointLight1 = new THREE.PointLight(0x1d4ed8, 2.4, 70);
-  pointLight1.position.set(16, 6, 14);
+  const pointLight1 = new THREE.PointLight(0xa855f7, 2.8, 65);
+  pointLight1.position.set(16, 6, 12);
   scene.add(pointLight1);
 
-  // Interactive Cursor Studio Key Light (smoothly glides over glass)
-  const mouseStudioLight = new THREE.PointLight(0x60a5fa, 2.2, 50);
-  mouseStudioLight.position.set(14, 2, 16);
-  scene.add(mouseStudioLight);
+  const pointLight2 = new THREE.PointLight(0x06b6d4, 2.2, 55);
+  pointLight2.position.set(-12, -8, 8);
+  scene.add(pointLight2);
 
-  // ── TITANIUM & SAPPHIRE OPTICAL REFRACTION FRESNEL SHADER ──
-  const corpVS = `
+  // Dynamic interactive lights that follow the mouse
+  const mouseLightCyan = new THREE.PointLight(0x00f5ff, 3.2, 45);
+  mouseLightCyan.position.set(14, 2, 14);
+  scene.add(mouseLightCyan);
+
+  const mouseLightMagenta = new THREE.PointLight(0xf43f5e, 2.8, 45);
+  mouseLightMagenta.position.set(10, -4, 12);
+  scene.add(mouseLightMagenta);
+
+  // ── ADVANCED MULTI-SPECTRAL IRIDESCENT FRESNEL SHADER ──
+  const fresnelVS = `
     varying vec3 vNormal;
     varying vec3 vViewPos;
     void main() {
@@ -1501,8 +1503,9 @@ if (bg3dCanvas && window.THREE) {
       gl_Position = projectionMatrix * mv;
     }
   `;
-  const corpFS = `
+  const fresnelFS = `
     uniform vec3 colorCore;
+    uniform vec3 colorMid;
     uniform vec3 colorRim;
     uniform float opacity;
     uniform float fresnelPower;
@@ -1514,25 +1517,27 @@ if (bg3dCanvas && window.THREE) {
       float fresnel = clamp(1.0 - abs(dot(v, n)), 0.0, 1.0);
       float fTerm = pow(fresnel, fresnelPower);
       
-      // Deep obsidian titanium into executive sapphire rim
-      vec3 col = mix(colorCore, colorRim, fTerm);
+      // Dynamic chromatic gradient: Core -> Mid -> Rim
+      vec3 col = mix(colorCore, colorMid, smoothstep(0.05, 0.55, fTerm));
+      col = mix(col, colorRim, smoothstep(0.50, 1.0, fTerm));
       
-      // Physical studio specular shine (pure white gleam)
-      vec3 lightDir = normalize(vec3(0.55, 0.75, 0.95));
+      // Specular highlight gleam
+      vec3 lightDir = normalize(vec3(0.6, 0.7, 0.9));
       vec3 halfVec = normalize(lightDir + v);
-      float spec = pow(max(dot(n, halfVec), 0.0), 36.0);
-      col += vec3(1.0, 1.0, 1.0) * spec * 0.75;
+      float spec = pow(max(dot(n, halfVec), 0.0), 28.0);
+      col += vec3(0.9, 0.95, 1.0) * spec * 0.55;
       
-      gl_FragColor = vec4(col, clamp(opacity + fTerm * 0.55, 0.0, 0.95));
+      gl_FragColor = vec4(col, clamp(opacity + fTerm * 0.58, 0.0, 0.96));
     }
   `;
 
-  function createCorporateGlassMaterial(colorCore, colorRim, opacity = 0.38, fresnelPower = 2.4) {
+  function createIridescentMaterial(colorCore, colorMid, colorRim, opacity = 0.36, fresnelPower = 2.2) {
     return new THREE.ShaderMaterial({
-      vertexShader: corpVS,
-      fragmentShader: corpFS,
+      vertexShader: fresnelVS,
+      fragmentShader: fresnelFS,
       uniforms: {
         colorCore:    { value: new THREE.Color(colorCore) },
+        colorMid:     { value: new THREE.Color(colorMid) },
         colorRim:     { value: new THREE.Color(colorRim) },
         opacity:      { value: opacity },
         fresnelPower: { value: fresnelPower }
@@ -1543,16 +1548,25 @@ if (bg3dCanvas && window.THREE) {
     });
   }
 
-  // Executive Enterprise Materials
-  const matCorpSapphire = createCorporateGlassMaterial(0x0a1128, 0x3b82f6, 0.38, 2.3);
-  const matCorpAzure    = createCorporateGlassMaterial(0x061826, 0x60a5fa, 0.35, 2.5);
+  // Iridescent Shaders
+  const matHeroIridescentViolet = createIridescentMaterial(0x2e1065, 0xa855f7, 0x00f5ff, 0.38, 2.0);
+  const matHeroIridescentCyan   = createIridescentMaterial(0x083344, 0x06b6d4, 0xf43f5e, 0.36, 2.1);
 
-  // Precision CAD Blueprint Wireframe Contour (representing software architecture)
-  const matBlueprintWire = new THREE.MeshBasicMaterial({
-    color: 0x60a5fa,
+  // Glowing Holographic Wireframe Contours (with Additive Blending for neon radiance)
+  const matGlowWireCyan = new THREE.MeshBasicMaterial({
+    color: 0x00f5ff,
     wireframe: true,
     transparent: true,
-    opacity: 0.16
+    opacity: 0.28,
+    blending: THREE.AdditiveBlending
+  });
+
+  const matGlowWireMagenta = new THREE.MeshBasicMaterial({
+    color: 0xf43f5e,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.26,
+    blending: THREE.AdditiveBlending
   });
 
   // ── UNIFIED 3D HERO CLUSTER & AMBIENT GROUPS ──
@@ -1562,105 +1576,228 @@ if (bg3dCanvas && window.THREE) {
   const ambientGroup = new THREE.Group();
   scene.add(ambientGroup);
 
-  // Helper to create enterprise glass sculpture with blueprint contour
-  function createGlassMeshWithGlow(geometry, glassShaderMat, wireMat = matBlueprintWire) {
+  // Helper to create glowing glass sculpture with holographic contour
+  function createGlassMeshWithGlow(geometry, glassShaderMat, wireMat = matGlowWireCyan) {
     const group = new THREE.Group();
     const bodyMesh = new THREE.Mesh(geometry, glassShaderMat);
     group.add(bodyMesh);
 
     if (wireMat) {
       const wireMesh = new THREE.Mesh(geometry.clone(), wireMat);
-      wireMesh.scale.setScalar(1.004);
+      wireMesh.scale.setScalar(1.006);
       group.add(wireMesh);
     }
     return group;
   }
 
   // ══════════════════════════════════════════════════════════════
-  // EXECUTIVE CENTERPIECE — Architectural Glass Möbius Lattice
+  // HERO CENTERPIECE — Magnificent Iridescent Glass Sculpture
   // ══════════════════════════════════════════════════════════════
-  const heroTorusGeo = new THREE.TorusKnotGeometry(5.2, 1.15, 260, 38, 2, 3);
-  const heroTorus = createGlassMeshWithGlow(heroTorusGeo, matCorpSapphire, matBlueprintWire);
-  heroTorus.position.set(13.0, 0.5, 0);
+  const heroTorusGeo = new THREE.TorusKnotGeometry(5.8, 1.35, 260, 38, 2, 3);
+  const heroTorus = createGlassMeshWithGlow(heroTorusGeo, matHeroIridescentViolet, matGlowWireCyan);
+  heroTorus.position.set(13.2, 0.8, 0);
   heroTorus.rotation.set(0.4, 0.6, 0.2);
   heroCluster.add(heroTorus);
 
-  // Inner Server Heartbeat Core (Deep Sapphire Server Pulse)
+  // Inner Pulsing Quantum Heart inside the Torus Knot
   const coreGroup = new THREE.Group();
-  const innerCoreGeo = new THREE.SphereGeometry(1.6, 32, 32);
+  const innerCoreGeo = new THREE.SphereGeometry(1.9, 32, 32);
   const innerCoreMat = new THREE.MeshBasicMaterial({
-    color: 0x1d4ed8,
+    color: 0xec4899,
     transparent: true,
-    opacity: 0.40,
+    opacity: 0.55,
     blending: THREE.AdditiveBlending
   });
   const innerCore = new THREE.Mesh(innerCoreGeo, innerCoreMat);
   coreGroup.add(innerCore);
 
-  const auraCoreGeo = new THREE.SphereGeometry(2.3, 32, 32);
+  const auraCoreGeo = new THREE.SphereGeometry(2.9, 32, 32);
   const auraCoreMat = new THREE.MeshBasicMaterial({
-    color: 0x2563eb,
+    color: 0x8b5cf6,
     transparent: true,
-    opacity: 0.16,
+    opacity: 0.22,
     blending: THREE.AdditiveBlending
   });
   const auraCore = new THREE.Mesh(auraCoreGeo, auraCoreMat);
   coreGroup.add(auraCore);
   heroTorus.add(coreGroup);
 
-  // ── GLOBAL CLOUD ORBITAL DATA TRACES (Representing Worldwide Infrastructure) ──
-  const globalOrbit1Geo = new THREE.TorusGeometry(7.6, 0.035, 16, 140);
-  const globalOrbit1Mat = new THREE.MeshBasicMaterial({
-    color: 0x60a5fa,
+  // ── GYROSCOPIC ORBITAL ENERGY RINGS (Futuristic & Mesmerizing) ──
+  const gyroRing1Geo = new THREE.TorusGeometry(8.5, 0.055, 16, 120);
+  const gyroRing1Mat = new THREE.MeshBasicMaterial({
+    color: 0x00f5ff,
     transparent: true,
-    opacity: 0.30
-  });
-  const globalOrbit1 = new THREE.Mesh(globalOrbit1Geo, globalOrbit1Mat);
-  globalOrbit1.position.set(13.0, 0.5, 0);
-  globalOrbit1.rotation.set(Math.PI / 3.2, 0.3, 0);
-  heroCluster.add(globalOrbit1);
-
-  const dataNode1Geo = new THREE.SphereGeometry(0.22, 16, 16);
-  const dataNode1Mat = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
+    opacity: 0.70,
     blending: THREE.AdditiveBlending
   });
-  const dataNode1 = new THREE.Mesh(dataNode1Geo, dataNode1Mat);
-  globalOrbit1.add(dataNode1);
+  const gyroRing1 = new THREE.Mesh(gyroRing1Geo, gyroRing1Mat);
+  gyroRing1.position.set(13.2, 0.8, 0);
+  gyroRing1.rotation.set(Math.PI / 3, 0.35, 0);
+  heroCluster.add(gyroRing1);
 
-  const globalOrbit2Geo = new THREE.TorusGeometry(8.5, 0.035, 16, 140);
-  const globalOrbit2Mat = new THREE.MeshBasicMaterial({
-    color: 0x3b82f6,
-    transparent: true,
-    opacity: 0.25
-  });
-  const globalOrbit2 = new THREE.Mesh(globalOrbit2Geo, globalOrbit2Mat);
-  globalOrbit2.position.set(13.0, 0.5, 0);
-  globalOrbit2.rotation.set(-Math.PI / 3.6, -0.35, 0.2);
-  heroCluster.add(globalOrbit2);
-
-  const dataNode2Geo = new THREE.SphereGeometry(0.22, 16, 16);
-  const dataNode2Mat = new THREE.MeshBasicMaterial({
-    color: 0x93c5fd,
+  const gyroBead1Geo = new THREE.SphereGeometry(0.36, 16, 16);
+  const gyroBead1Mat = new THREE.MeshBasicMaterial({
+    color: 0x38bdf8,
     blending: THREE.AdditiveBlending
   });
-  const dataNode2 = new THREE.Mesh(dataNode2Geo, dataNode2Mat);
-  globalOrbit2.add(dataNode2);
+  const gyroBead1 = new THREE.Mesh(gyroBead1Geo, gyroBead1Mat);
+  gyroRing1.add(gyroBead1);
 
-  // ── DISTRIBUTED DATA NODES (Architectural Crystalline Polyhedra) ──
-  const heroOctaGeo = new THREE.OctahedronGeometry(2.0, 0);
-  const heroOcta = createGlassMeshWithGlow(heroOctaGeo, matCorpAzure, matBlueprintWire);
-  heroOcta.position.set(20.5, 6.0, -1.5);
+  const gyroRing2Geo = new THREE.TorusGeometry(9.5, 0.055, 16, 120);
+  const gyroRing2Mat = new THREE.MeshBasicMaterial({
+    color: 0xf43f5e,
+    transparent: true,
+    opacity: 0.60,
+    blending: THREE.AdditiveBlending
+  });
+  const gyroRing2 = new THREE.Mesh(gyroRing2Geo, gyroRing2Mat);
+  gyroRing2.position.set(13.2, 0.8, 0);
+  gyroRing2.rotation.set(-Math.PI / 3.2, -0.4, 0.3);
+  heroCluster.add(gyroRing2);
+
+  const gyroBead2Geo = new THREE.SphereGeometry(0.36, 16, 16);
+  const gyroBead2Mat = new THREE.MeshBasicMaterial({
+    color: 0xf43f5e,
+    blending: THREE.AdditiveBlending
+  });
+  const gyroBead2 = new THREE.Mesh(gyroBead2Geo, gyroBead2Mat);
+  gyroRing2.add(gyroBead2);
+
+  // ── FLOATING 3D GLASS UI WINDOW CARDS (Matching Reference) ──
+  function create3DUICardMesh(symbol, isPrimary = true) {
+    const cardGroup = new THREE.Group();
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 160;
+    const ctx = canvas.getContext('2d');
+
+    // Translucent rounded card background
+    ctx.fillStyle = isPrimary ? 'rgba(99, 102, 241, 0.35)' : 'rgba(30, 27, 75, 0.45)';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(0, 0, 256, 160, 20);
+    } else {
+      ctx.rect(0, 0, 256, 160);
+    }
+    ctx.fill();
+
+    // Border stroke
+    ctx.strokeStyle = isPrimary ? 'rgba(192, 132, 252, 0.75)' : 'rgba(56, 189, 248, 0.75)';
+    ctx.lineWidth = 5;
+    ctx.stroke();
+
+    // Header bar
+    ctx.fillStyle = isPrimary ? 'rgba(168, 85, 247, 0.30)' : 'rgba(6, 182, 212, 0.30)';
+    ctx.fillRect(8, 8, 240, 28);
+
+    // Control dots
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath(); ctx.arc(24, 22, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath(); ctx.arc(40, 22, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#34d399';
+    ctx.beginPath(); ctx.arc(56, 22, 5, 0, Math.PI * 2); ctx.fill();
+
+    // Center symbol
+    ctx.fillStyle = isPrimary ? '#f0abfc' : '#38bdf8';
+    ctx.font = 'bold 44px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(symbol, 128, 100);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.minFilter = THREE.LinearFilter;
+
+    const cardMat = new THREE.MeshPhongMaterial({
+      map: tex,
+      transparent: true,
+      opacity: 0.78,
+      specular: 0x38bdf8,
+      shininess: 120,
+      side: THREE.DoubleSide
+    });
+
+    const cardMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 1.9), cardMat);
+    cardGroup.add(cardMesh);
+    return cardGroup;
+  }
+
+  // 1. Top UI Window Card (near knot top-left)
+  const uiCard1 = create3DUICardMesh('</>', true);
+  uiCard1.position.set(7.2, 4.8, 1.8);
+  uiCard1.rotation.set(0.15, 0.35, -0.1);
+  heroCluster.add(uiCard1);
+
+  // 2. Center UI Window Card (lower middle)
+  const uiCard2 = create3DUICardMesh('</>', false);
+  uiCard2.position.set(11.2, -5.5, 1.2);
+  uiCard2.rotation.set(-0.25, 0.3, 0.1);
+  heroCluster.add(uiCard2);
+
+  // ── FLOATING 3D TECH PROCESSOR CHIP (Bottom Right) ──
+  function createTechChipMesh() {
+    const chipGroup = new THREE.Group();
+
+    // Silicon Base Plate (Dark Indigo/Blue Glass)
+    const baseGeo = new THREE.BoxGeometry(3.6, 2.6, 0.35);
+    const baseMat = new THREE.MeshPhongMaterial({
+      color: 0x1e1b4b,
+      emissive: 0x312e81,
+      specular: 0x38bdf8,
+      shininess: 120,
+      transparent: true,
+      opacity: 0.88
+    });
+    const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+    chipGroup.add(baseMesh);
+
+    // Glowing Inner Die (Pink/Purple)
+    const dieGeo = new THREE.BoxGeometry(1.8, 1.3, 0.4);
+    const dieMat = new THREE.MeshPhongMaterial({
+      color: 0xec4899,
+      emissive: 0xdb2777,
+      specular: 0xffffff,
+      shininess: 160
+    });
+    const dieMesh = new THREE.Mesh(dieGeo, dieMat);
+    chipGroup.add(dieMesh);
+
+    // Pin Traces around chip
+    for (let p = -1.4; p <= 1.4; p += 0.4) {
+      const pinGeo = new THREE.BoxGeometry(0.12, 0.5, 0.08);
+      const pinMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+      const pinTop = new THREE.Mesh(pinGeo, pinMat);
+      pinTop.position.set(p, 1.45, 0);
+      const pinBot = new THREE.Mesh(pinGeo, pinMat);
+      pinBot.position.set(p, -1.45, 0);
+      chipGroup.add(pinTop);
+      chipGroup.add(pinBot);
+    }
+
+    return chipGroup;
+  }
+  const techChip = createTechChipMesh();
+  techChip.position.set(15.5, -7.5, 1.0);
+  techChip.rotation.set(-0.35, 0.5, -0.2);
+  heroCluster.add(techChip);
+
+  // ── CRYSTALLINE SATELLITES (Balanced Composition & Clean Depth) ──
+  // Satellite 1: Glowing Octahedron Crystal (Top-Right)
+  const heroOctaGeo = new THREE.OctahedronGeometry(2.1, 0);
+  const heroOcta = createGlassMeshWithGlow(heroOctaGeo, matHeroIridescentCyan, matGlowWireCyan);
+  heroOcta.position.set(20.5, 6.8, -1.5);
   heroCluster.add(heroOcta);
 
-  const heroIcosaGeo = new THREE.IcosahedronGeometry(2.4, 1);
-  const heroIcosa = createGlassMeshWithGlow(heroIcosaGeo, matCorpSapphire, matBlueprintWire);
-  heroIcosa.position.set(5.5, -4.5, 1.2);
+  // Satellite 2: Glowing Icosahedron Crystal (Lower-Left)
+  const heroIcosaGeo = new THREE.IcosahedronGeometry(2.5, 1);
+  const heroIcosa = createGlassMeshWithGlow(heroIcosaGeo, matHeroIridescentViolet, matGlowWireMagenta);
+  heroIcosa.position.set(4.5, -4.5, 1.8);
   heroCluster.add(heroIcosa);
 
+  // Satellite 3: Deep Dodecahedron Crystal (Depth Balance)
   const heroDodecaGeo = new THREE.DodecahedronGeometry(1.8, 0);
-  const heroDodeca = createGlassMeshWithGlow(heroDodecaGeo, matCorpAzure, matBlueprintWire);
-  heroDodeca.position.set(19.0, -5.2, -3.5);
+  const heroDodeca = createGlassMeshWithGlow(heroDodecaGeo, matHeroIridescentCyan, matGlowWireCyan);
+  heroDodeca.position.set(19.5, -5.8, -3.5);
   heroCluster.add(heroDodeca);
 
   // ══════════════════════════════════════════════════════════════
@@ -1668,14 +1805,14 @@ if (bg3dCanvas && window.THREE) {
   // ══════════════════════════════════════════════════════════════
   const sectionObjects = [];
   const sectionConfigs = [
-    { geo: new THREE.IcosahedronGeometry(3.8, 1),    mat: matCorpAzure,    wire: matBlueprintWire, pos: [-17, -28, -4] },
-    { geo: new THREE.OctahedronGeometry(4.2, 0),     mat: matCorpSapphire, wire: matBlueprintWire, pos: [17, -55, -2] },
-    { geo: new THREE.TorusGeometry(4.8, 1.1, 16, 50),mat: matCorpSapphire, wire: matBlueprintWire, pos: [-15, -90, -4] },
-    { geo: new THREE.DodecahedronGeometry(4.0, 0),   mat: matCorpAzure,    wire: matBlueprintWire, pos: [16, -125, -3] },
-    { geo: new THREE.OctahedronGeometry(4.5, 1),     mat: matCorpAzure,    wire: matBlueprintWire, pos: [-16, -155, -3] },
-    { geo: new THREE.TorusKnotGeometry(3.5, 0.85, 80, 16), mat: matCorpSapphire, wire: matBlueprintWire, pos: [15, -190, -2] },
-    { geo: new THREE.IcosahedronGeometry(4.2, 2),    mat: matCorpAzure,    wire: matBlueprintWire, pos: [-16, -220, -4] },
-    { geo: new THREE.DodecahedronGeometry(4.8, 0),   mat: matCorpSapphire, wire: matBlueprintWire, pos: [16, -255, -3] }
+    { geo: new THREE.IcosahedronGeometry(3.8, 1),    mat: matHeroIridescentCyan,   wire: matGlowWireCyan,    pos: [-17, -28, -4] },
+    { geo: new THREE.OctahedronGeometry(4.2, 0),     mat: matHeroIridescentViolet, wire: matGlowWireMagenta, pos: [17, -55, -2] },
+    { geo: new THREE.TorusGeometry(4.8, 1.1, 16, 50),mat: matHeroIridescentViolet, wire: matGlowWireCyan,    pos: [-15, -90, -4] },
+    { geo: new THREE.DodecahedronGeometry(4.0, 0),   mat: matHeroIridescentCyan,   wire: matGlowWireMagenta, pos: [16, -125, -3] },
+    { geo: new THREE.OctahedronGeometry(4.5, 1),     mat: matHeroIridescentCyan,   wire: matGlowWireCyan,    pos: [-16, -155, -3] },
+    { geo: new THREE.TorusKnotGeometry(3.5, 0.85, 80, 16), mat: matHeroIridescentViolet, wire: matGlowWireMagenta, pos: [15, -190, -2] },
+    { geo: new THREE.IcosahedronGeometry(4.2, 2),    mat: matHeroIridescentCyan,   wire: matGlowWireCyan,    pos: [-16, -220, -4] },
+    { geo: new THREE.DodecahedronGeometry(4.8, 0),   mat: matHeroIridescentViolet, wire: matGlowWireMagenta, pos: [16, -255, -3] }
   ];
 
   sectionConfigs.forEach(cfg => {
@@ -1686,7 +1823,7 @@ if (bg3dCanvas && window.THREE) {
   });
 
   // ══════════════════════════════════════════════════════════════
-  // AMBIENT ENTERPRISE CLOUD CUBES
+  // AMBIENT GLASS CODE CUBES — Subtle, gentle background accents
   // ══════════════════════════════════════════════════════════════
   function createCodeCubeTexture(symbol, bgColor, textColor) {
     const canvas = document.createElement('canvas');
@@ -1696,10 +1833,10 @@ if (bg3dCanvas && window.THREE) {
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, 128, 128);
     ctx.strokeStyle = textColor;
-    ctx.lineWidth = 2.5;
-    ctx.strokeRect(6, 6, 116, 116);
+    ctx.lineWidth = 3;
+    ctx.strokeRect(4, 4, 120, 120);
     ctx.fillStyle = textColor;
-    ctx.font = 'bold 36px monospace';
+    ctx.font = 'bold 44px monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(symbol, 64, 64);
@@ -1709,49 +1846,50 @@ if (bg3dCanvas && window.THREE) {
   }
 
   const cubeSymbols = [
-    { sym: 'API',    pos: [7, 7, -6],    size: 1.3, rot: [0.3, 0.5, 0.1] },
-    { sym: 'CLOUD',  pos: [22, -6, -4],  size: 1.4, rot: [0.8, 0.2, 0.4] },
-    { sym: 'DATA',   pos: [15, -8, -1],  size: 1.1, rot: [0.1, 0.9, 0.3] },
-    { sym: '{ }',    pos: [-5, -6, -8],  size: 1.2, rot: [0.4, 0.7, 0.2] },
+    { sym: '{ }', pos: [7, 7, -6],    size: 1.3, rot: [0.3, 0.5, 0.1] },
+    { sym: '</>', pos: [22, -6, -4],  size: 1.4, rot: [0.8, 0.2, 0.4] },
+    { sym: '=>',  pos: [15, -8, -1],  size: 1.1, rot: [0.1, 0.9, 0.3] },
+    { sym: '[ ]', pos: [-5, -6, -8],  size: 1.2, rot: [0.4, 0.7, 0.2] },
     // Scroll depth cubes
-    { sym: 'SCALE',  pos: [-12, -40, -4], size: 1.5, rot: [0.4, 0.5, 0.2] },
-    { sym: 'CORE',   pos: [14, -70, -3],  size: 1.4, rot: [0.2, 0.7, 0.5] },
-    { sym: 'SECURE', pos: [-8, -100, -5], size: 1.3, rot: [0.6, 0.3, 0.8] },
-    { sym: 'EDGE',   pos: [18, -130, -4], size: 1.2, rot: [0.1, 0.9, 0.4] },
-    { sym: 'NODE',   pos: [-14, -160, -6],size: 1.5, rot: [0.7, 0.2, 0.6] }
+    { sym: '{ }', pos: [-12, -40, -4], size: 1.5, rot: [0.4, 0.5, 0.2] },
+    { sym: '</>', pos: [14, -70, -3],  size: 1.4, rot: [0.2, 0.7, 0.5] },
+    { sym: '[ ]', pos: [-8, -100, -5], size: 1.3, rot: [0.6, 0.3, 0.8] },
+    { sym: '=>',  pos: [18, -130, -4], size: 1.2, rot: [0.1, 0.9, 0.4] },
+    { sym: '{...}', pos: [-14, -160, -6],size: 1.5, rot: [0.7, 0.2, 0.6] }
   ];
 
   const codeCubes = [];
   cubeSymbols.forEach(cfg => {
-    const tex = createCodeCubeTexture(cfg.sym, 'rgba(15, 23, 42, 0.75)', 'rgba(148, 163, 184, 0.85)');
+    const tex = createCodeCubeTexture(cfg.sym, 'rgba(124, 58, 237, 0.22)', 'rgba(192, 132, 252, 0.85)');
     const mat = new THREE.MeshPhongMaterial({
       map: tex,
       transparent: true,
-      opacity: 0.55,
-      specular: 0x60a5fa,
-      shininess: 120,
+      opacity: 0.50,
+      specular: 0x38bdf8,
+      shininess: 140,
       side: THREE.DoubleSide
     });
     const cube = new THREE.Mesh(new THREE.BoxGeometry(cfg.size, cfg.size, cfg.size), mat);
     cube.position.set(...cfg.pos);
     cube.rotation.set(...cfg.rot);
-    cube.userData = { baseY: cfg.pos[1], speed: 0.2 + Math.random() * 0.4, rotSpeed: 0.001 + Math.random() * 0.002 };
+    cube.userData = { baseY: cfg.pos[1], speed: 0.2 + Math.random() * 0.4, rotSpeed: 0.001 + Math.random() * 0.003 };
     ambientGroup.add(cube);
     codeCubes.push(cube);
   });
 
   // ══════════════════════════════════════════════════════════════
-  // GLOBAL DATA CONSTELLATION (Ultra-Fine Enterprise Monochromatic Dust)
+  // TWINKLING COSMIC STARFIELD (Multi-colored Glowing Gems)
   // ══════════════════════════════════════════════════════════════
   const particleGeo = new THREE.BufferGeometry();
-  const particleCount = 150;
+  const particleCount = 220;
   const posArray = new Float32Array(particleCount * 3);
   const colorArray = new Float32Array(particleCount * 3);
-  const corpColors = [
-    new THREE.Color(0xffffff), // pure white star
-    new THREE.Color(0x93c5fd), // soft ice blue
-    new THREE.Color(0x60a5fa), // azure data node
-    new THREE.Color(0x3b82f6)  // deep sapphire
+  const starColors = [
+    new THREE.Color(0x38bdf8), // cyan
+    new THREE.Color(0xd946ef), // magenta
+    new THREE.Color(0xa78bfa), // violet
+    new THREE.Color(0x34d399), // emerald accent
+    new THREE.Color(0xffffff)  // star white
   ];
 
   for (let i = 0; i < particleCount; i++) {
@@ -1760,7 +1898,7 @@ if (bg3dCanvas && window.THREE) {
     posArray[i3 + 1] = (Math.random() - 0.5) * 360;
     posArray[i3 + 2] = (Math.random() - 0.5) * 45;
 
-    const chosenColor = corpColors[Math.floor(Math.random() * corpColors.length)];
+    const chosenColor = starColors[Math.floor(Math.random() * starColors.length)];
     colorArray[i3]     = chosenColor.r;
     colorArray[i3 + 1] = chosenColor.g;
     colorArray[i3 + 2] = chosenColor.b;
@@ -1769,10 +1907,11 @@ if (bg3dCanvas && window.THREE) {
   particleGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
   particleGeo.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
   const particleMat = new THREE.PointsMaterial({
-    size: 0.28,
+    size: 0.35,
     vertexColors: true,
     transparent: true,
-    opacity: 0.45
+    opacity: 0.65,
+    blending: THREE.AdditiveBlending
   });
   const particles = new THREE.Points(particleGeo, particleMat);
   ambientGroup.add(particles);
@@ -1796,7 +1935,7 @@ if (bg3dCanvas && window.THREE) {
   }, { passive: true });
 
   // ══════════════════════════════════════════════════════════════
-  // RENDER LOOP (Dignified Executive Motion Physics)
+  // RENDER LOOP (Silky Smooth Parallax & Gentle Breathing Animation)
   // ══════════════════════════════════════════════════════════════
   let heroScrollY = 0;
 
@@ -1812,54 +1951,69 @@ if (bg3dCanvas && window.THREE) {
     heroCluster.rotation.y = targetX * 0.002;
 
     // ── Smooth Hero Centerpiece Rotations & Fluid Breathing ──
-    heroTorus.rotation.x += 0.0009;
-    heroTorus.rotation.y += 0.0014;
-    heroTorus.position.y = 0.5 + Math.sin(time * 0.4) * 0.25;
+    heroTorus.rotation.x += 0.0014;
+    heroTorus.rotation.y += 0.0020;
+    heroTorus.position.y = 0.8 + Math.sin(time * 0.6) * 0.35;
 
-    // ── Server Core Pulse (Calm 3s Heartbeat) ──
-    const corePulse = 1.0 + Math.sin(time * 1.5) * 0.05;
+    // ── Quantum Heart Core Pulse ──
+    const corePulse = 1.0 + Math.sin(time * 2.2) * 0.08;
     coreGroup.scale.set(corePulse, corePulse, corePulse);
 
-    // ── Global Cloud Orbit Traces & Data Nodes ──
-    globalOrbit1.rotation.z += 0.0016;
-    globalOrbit2.rotation.z -= 0.0014;
-    const nodeAngle1 = time * 0.5;
-    dataNode1.position.set(Math.cos(nodeAngle1) * 7.6, Math.sin(nodeAngle1) * 7.6, 0);
-    const nodeAngle2 = -time * 0.45;
-    dataNode2.position.set(Math.cos(nodeAngle2) * 8.5, Math.sin(nodeAngle2) * 8.5, 0);
+    // ── Gyroscopic Rings Spin & Orbiting Beads Movement ──
+    gyroRing1.rotation.z += 0.0028;
+    gyroRing2.rotation.z -= 0.0022;
+    const beadAngle1 = time * 0.75;
+    gyroBead1.position.set(Math.cos(beadAngle1) * 8.5, Math.sin(beadAngle1) * 8.5, 0);
+    const beadAngle2 = -time * 0.65;
+    gyroBead2.position.set(Math.cos(beadAngle2) * 9.5, Math.sin(beadAngle2) * 9.5, 0);
 
-    // ── Interactive Cursor Studio Light ──
-    mouseStudioLight.position.x = 14 + targetX * 0.5;
-    mouseStudioLight.position.y = 2 - targetY * 0.5;
+    // ── Floating UI Window Cards Physics ──
+    uiCard1.position.y = 4.8 + Math.sin(time * 0.9) * 0.25;
+    uiCard1.rotation.y = 0.35 + Math.cos(time * 0.6) * 0.05;
+
+    uiCard2.position.y = -5.5 + Math.sin(time * 0.8 + 1.2) * 0.2;
+    uiCard2.rotation.x = -0.25 + Math.sin(time * 0.5) * 0.04;
+
+    // ── Tech Processor Chip Physics ──
+    techChip.position.y = -7.5 + Math.sin(time * 0.7 + 0.8) * 0.25;
+    techChip.rotation.x += 0.0012;
+    techChip.rotation.y += 0.0016;
+
+    // ── Interactive Mouse Lights (Real-time specular glints) ──
+    mouseLightCyan.position.x = 13.5 + targetX * 0.6;
+    mouseLightCyan.position.y = 1.5 - targetY * 0.6;
+    mouseLightMagenta.position.x = 11.5 - targetX * 0.5;
+    mouseLightMagenta.position.y = -2.5 + targetY * 0.5;
 
     // ── Smooth Crystalline Satellites Motion ──
-    heroOcta.rotation.y += 0.0020;
-    heroOcta.rotation.z += 0.0015;
-    heroOcta.position.y = 6.0 + Math.sin(time * 0.5) * 0.20;
+    heroOcta.rotation.y += 0.003;
+    heroOcta.rotation.z += 0.002;
+    heroOcta.position.y = 6.8 + Math.sin(time * 0.75) * 0.25;
 
-    heroIcosa.rotation.x += 0.0016;
-    heroIcosa.rotation.y += 0.0020;
-    heroIcosa.position.y = -4.5 + Math.cos(time * 0.45) * 0.20;
+    heroIcosa.rotation.x += 0.0025;
+    heroIcosa.rotation.y += 0.003;
+    heroIcosa.position.y = -4.5 + Math.cos(time * 0.65) * 0.25;
 
-    heroDodeca.rotation.x += 0.0015;
-    heroDodeca.rotation.z += 0.0018;
-    heroDodeca.position.y = -5.2 + Math.sin(time * 0.5 + 1.2) * 0.18;
+    heroDodeca.rotation.x += 0.002;
+    heroDodeca.rotation.z += 0.0025;
+    heroDodeca.position.y = -5.8 + Math.sin(time * 0.8 + 1.2) * 0.22;
 
     // ── Section Object Rotations ──
     sectionObjects.forEach((obj, i) => {
-      obj.rotation.x += 0.0012 + i * 0.0003;
-      obj.rotation.y += 0.0010 + i * 0.0002;
+      obj.rotation.x += 0.0015 + i * 0.0004;
+      obj.rotation.y += 0.0012 + i * 0.0003;
     });
 
     // ── Code Cubes: Slow Hover Float + Rotation ──
     codeCubes.forEach((cube) => {
-      cube.position.y = cube.userData.baseY + Math.sin(time * cube.userData.speed + cube.userData.speed) * 0.25;
-      cube.rotation.x += cube.userData.rotSpeed * 0.5;
-      cube.rotation.y += cube.userData.rotSpeed * 0.3;
+      cube.position.y = cube.userData.baseY + Math.sin(time * cube.userData.speed + cube.userData.speed) * 0.3;
+      cube.rotation.x += cube.userData.rotSpeed * 0.6;
+      cube.rotation.y += cube.userData.rotSpeed * 0.4;
     });
 
-    // ── Cosmic Starfield Drift ──
-    particles.rotation.y += 0.00012;
+    // ── Cosmic Starfield Twinkle & Drift ──
+    particles.rotation.y += 0.00018;
+    particleMat.opacity = 0.55 + Math.sin(time * 1.6) * 0.15;
 
     // ── Camera: Mouse Tilt Inertia ──
     camera.position.x = targetX * 0.35;
@@ -1881,8 +2035,8 @@ if (bg3dCanvas && window.THREE) {
     // Soft fade as user scrolls past hero so 3D objects never distract from reading content
     if (bg3dCanvas) {
       const exitProgress = Math.min(1, Math.max(0, (scrollY - 80) / (heroHeight * 0.75)));
-      // Dims from 0.90 in hero down to 0.22 subtle background ambiance
-      bg3dCanvas.style.opacity = (0.90 - exitProgress * 0.68).toFixed(3);
+      // Dims from 0.95 in hero down to 0.25 subtle background ambiance
+      bg3dCanvas.style.opacity = (0.95 - exitProgress * 0.70).toFixed(3);
     }
 
     renderer.render(scene, camera);
