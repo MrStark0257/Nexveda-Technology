@@ -1860,6 +1860,104 @@ if (bg3dCanvas && window.THREE) {
   });
 
   // ══════════════════════════════════════════════════════════════
+  // SIDE CODING ICON GLASS BOXES (Auto-Rotating Small Tech Boxes on Right Side)
+  // ══════════════════════════════════════════════════════════════
+  function createCodeIconTexture(symbol, accentColor, glowColor) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    // Deep translucent glass backing
+    ctx.fillStyle = 'rgba(8, 14, 28, 0.85)';
+    ctx.fillRect(0, 0, 256, 256);
+
+    // Subtle radial glow from center
+    const grad = ctx.createRadialGradient(128, 128, 10, 128, 128, 120);
+    grad.addColorStop(0.0, glowColor);
+    grad.addColorStop(1.0, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 256, 256);
+
+    // Glowing perimeter border
+    ctx.strokeStyle = accentColor;
+    ctx.lineWidth = 6;
+    ctx.strokeRect(10, 10, 236, 236);
+
+    // Tech corner notches
+    ctx.fillStyle = accentColor;
+    ctx.fillRect(8, 8, 22, 6);
+    ctx.fillRect(8, 8, 6, 22);
+    ctx.fillRect(226, 8, 22, 6);
+    ctx.fillRect(242, 8, 6, 22);
+    ctx.fillRect(8, 242, 22, 6);
+    ctx.fillRect(8, 226, 6, 22);
+    ctx.fillRect(226, 242, 22, 6);
+    ctx.fillRect(242, 226, 6, 22);
+
+    // Crisp glowing code symbol
+    ctx.shadowColor = accentColor;
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 74px "JetBrains Mono", "Fira Code", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(symbol, 128, 128);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.minFilter = THREE.LinearFilter;
+    return tex;
+  }
+
+  const heroCodeBoxes = [];
+  const heroCodeBoxConfigs = [
+    // Symbol, accent color, glow color, size, relative [x, y, z] on the right side
+    { sym: '</>', color: '#38bdf8', glow: 'rgba(56, 189, 248, 0.35)', size: 1.25, pos: [8.2, 5.2, 1.4],   rotSpeed: [0.005, 0.007] },
+    { sym: '{ }', color: '#c084fc', glow: 'rgba(192, 132, 252, 0.35)',size: 1.20, pos: [-1.8, 6.2, 0.6],  rotSpeed: [0.006, -0.005] },
+    { sym: '=>',  color: '#34d399', glow: 'rgba(52, 211, 153, 0.35)', size: 1.15, pos: [8.8, 0.4, 1.8],   rotSpeed: [-0.004, 0.008] },
+    { sym: 'API', color: '#fbbf24', glow: 'rgba(251, 191, 36, 0.35)', size: 1.10, pos: [-1.2, -1.6, 2.6],  rotSpeed: [0.007, 0.006] },
+    { sym: 'TS',  color: '#60a5fa', glow: 'rgba(96, 165, 250, 0.35)', size: 1.15, pos: [7.2, -5.6, 0.8],  rotSpeed: [-0.005, 0.007] },
+    { sym: 'git', color: '#f87171', glow: 'rgba(248, 113, 113, 0.35)',size: 1.10, pos: [1.2, -6.6, 1.6],   rotSpeed: [0.006, -0.006] }
+  ];
+
+  heroCodeBoxConfigs.forEach(cfg => {
+    const tex = createCodeIconTexture(cfg.sym, cfg.color, cfg.glow);
+    const boxMat = new THREE.MeshPhongMaterial({
+      map: tex,
+      transparent: true,
+      opacity: 0.88,
+      specular: 0xffffff,
+      shininess: 150,
+      side: THREE.DoubleSide
+    });
+    const boxGeo = new THREE.BoxGeometry(cfg.size, cfg.size, cfg.size);
+    const boxMesh = new THREE.Mesh(boxGeo, boxMat);
+
+    // Glowing border edges
+    const boxEdges = new THREE.LineSegments(
+      new THREE.EdgesGeometry(boxGeo),
+      new THREE.LineBasicMaterial({ color: new THREE.Color(cfg.color), transparent: true, opacity: 0.80 })
+    );
+
+    const boxGroup = new THREE.Group();
+    boxGroup.add(boxMesh);
+    boxGroup.add(boxEdges);
+    boxGroup.position.set(...cfg.pos);
+    boxGroup.rotation.set(0.3, 0.5, 0.2);
+
+    boxGroup.userData = {
+      baseY: cfg.pos[1],
+      floatSpeed: 0.35 + Math.random() * 0.3,
+      phase: Math.random() * Math.PI * 2,
+      rotX: cfg.rotSpeed[0],
+      rotY: cfg.rotSpeed[1]
+    };
+
+    heroCluster.add(boxGroup);
+    heroCodeBoxes.push(boxGroup);
+  });
+
+  // ══════════════════════════════════════════════════════════════
   // SECTION OBJECTS — Spread across page height for smooth scrolling
   // ══════════════════════════════════════════════════════════════
   const sectionObjects = [];
@@ -2002,28 +2100,52 @@ if (bg3dCanvas && window.THREE) {
     targetX += (mouseX - targetX) * 0.04;
     targetY += (mouseY - targetY) * 0.04;
 
-    // ── Unified Mouse Tilt for entire Hero Cluster ──
-    heroCluster.rotation.x = targetY * 0.002;
-    heroCluster.rotation.y = targetX * 0.002;
+    // ── Unified Auto-Rotation & Mouse Tilt for Hero Cluster ──
+    heroCluster.rotation.x = targetY * 0.002 + Math.cos(time * 0.28) * 0.025;
+    heroCluster.rotation.y = targetX * 0.002 + Math.sin(time * 0.35) * 0.035;
 
-    // ── Diamond Crystal Polyhedron Rotations & Fluid Breathing ──
-    diamondGroup.rotation.x += 0.0012;
-    diamondGroup.rotation.y += 0.0018;
+    // ── Diamond Crystal Polyhedron Continuous Auto-Rotation & Breathing ──
+    diamondGroup.rotation.x += 0.0016;
+    diamondGroup.rotation.y += 0.0022;
     diamondGroup.position.y = 3.4 + Math.sin(time * 0.5) * 0.35;
 
     // Inner Nested Polyhedron Layered Counter-Spin
-    innerDiamondGroup.rotation.x -= 0.0022;
-    innerDiamondGroup.rotation.y += 0.0028;
+    innerDiamondGroup.rotation.x -= 0.0028;
+    innerDiamondGroup.rotation.y += 0.0035;
 
-    // ── Polished Chrome Frame Cubes Subtle Hover Physics ──
+    // ── Polished Chrome Frame Cubes Continuous 3D Auto-Rotation & Hover Physics ──
+    chromeCube1.rotation.y += 0.0030;
+    chromeCube1.rotation.x += 0.0018;
     chromeCube1.position.y = 2.4 + Math.sin(time * 0.45) * 0.20;
+
+    chromeCube2.rotation.y -= 0.0026;
+    chromeCube2.rotation.z += 0.0018;
     chromeCube2.position.y = -1.8 + Math.sin(time * 0.45 + 0.8) * 0.18;
+
+    chromeCube3.rotation.x += 0.0022;
+    chromeCube3.rotation.y += 0.0028;
     chromeCube3.position.y = -4.4 + Math.sin(time * 0.45 + 1.6) * 0.18;
+
+    chromeCube4.rotation.y += 0.0026;
+    chromeCube4.rotation.x -= 0.0016;
     chromeCube4.position.y = -3.8 + Math.sin(time * 0.45 + 2.4) * 0.20;
+
+    // ── Frosted Solid Glass Cube Continuous Auto-Rotation & Float ──
+    frostedCubeGroup.rotation.y += 0.0032;
+    frostedCubeGroup.rotation.x += 0.0020;
     frostedCubeGroup.position.y = -4.0 + Math.sin(time * 0.45 + 1.2) * 0.18;
 
-    // ── Floating Glass Voxels Smooth Drift ──
+    // ── Side Coding Icon Glass Boxes Continuous 3D Auto-Rotation & Float ──
+    heroCodeBoxes.forEach(b => {
+      b.rotation.x += b.userData.rotX;
+      b.rotation.y += b.userData.rotY;
+      b.position.y = b.userData.baseY + Math.sin(time * b.userData.floatSpeed + b.userData.phase) * 0.25;
+    });
+
+    // ── Floating Glass Voxels Auto-Tumble & Drift ──
     floatingVoxels.forEach(v => {
+      v.rotation.x += 0.004;
+      v.rotation.y += 0.005;
       v.position.y = v.userData.baseY + Math.sin(time * v.userData.speed + v.userData.rotOffset) * 0.20;
     });
 
