@@ -1464,37 +1464,87 @@ if (bg3dCanvas && window.THREE) {
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(isMobile3D ? 1 : Math.min(window.devicePixelRatio, 1.75));
 
-  // ── STUDIO 3-POINT LIGHTING FOR CHROME & CRYSTAL (Matching Reference) ──
-  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  // ── STUDIO LIGHTING FOR REFLECTIVE CHROME & DIAMOND CRYSTAL ──
+  // Low ambient keeps metallic chrome deep, contrasty, and mirror-reflective
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
 
-  // Pure White Key Light for gleaming reflections on chrome and crystal facets
-  const dirLight1 = new THREE.DirectionalLight(0xffffff, 2.2);
-  dirLight1.position.set(28, 32, 24);
+  // Pure White Key Light for gleaming reflections on chrome rods and crystal facets
+  const dirLight1 = new THREE.DirectionalLight(0xffffff, 2.4);
+  dirLight1.position.set(28, 35, 24);
   scene.add(dirLight1);
 
   // Cool Platinum Fill Light
-  const dirLight2 = new THREE.DirectionalLight(0xd1d5db, 1.4);
-  dirLight2.position.set(-22, -18, 12);
+  const dirLight2 = new THREE.DirectionalLight(0xa0aec0, 1.2);
+  dirLight2.position.set(-20, -15, 12);
   scene.add(dirLight2);
 
-  // Subtle Chromatic Prismatic Backlight
-  const dirLight3 = new THREE.DirectionalLight(0x818cf8, 1.1);
-  dirLight3.position.set(10, -20, -15);
+  // Subtle Prismatic Rim Backlight
+  const dirLight3 = new THREE.DirectionalLight(0x818cf8, 0.9);
+  dirLight3.position.set(12, -22, -15);
   scene.add(dirLight3);
 
-  // Interactive Cursor Light (pure white specular gleam glides over facets)
-  const mouseCrystalLight = new THREE.PointLight(0xffffff, 2.8, 55);
-  mouseCrystalLight.position.set(14.8, 3.2, 16);
+  // Interactive Cursor Light (specular diamond gleam glides over facets)
+  const mouseCrystalLight = new THREE.PointLight(0xffffff, 2.5, 50);
+  mouseCrystalLight.position.set(16.5, 3.5, 16);
   scene.add(mouseCrystalLight);
+
+  // ── GENERATE PANORAMIC STUDIO ENVIRONMENT MAP (Luxury Chrome & Crystal Reflections) ──
+  function createStudioEnvironmentTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    // Studio base: Deep obsidian void
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, 256);
+    bgGrad.addColorStop(0.0, '#030712');
+    bgGrad.addColorStop(0.4, '#0a1020');
+    bgGrad.addColorStop(0.6, '#0f172a');
+    bgGrad.addColorStop(1.0, '#020408');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 512, 256);
+
+    // Studio Softbox 1: Overhead pure white horizontal strip (gives gleaming platinum top edges)
+    const topGlow = ctx.createRadialGradient(256, 30, 10, 256, 30, 200);
+    topGlow.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)');
+    topGlow.addColorStop(0.3, 'rgba(240, 246, 255, 0.85)');
+    topGlow.addColorStop(0.6, 'rgba(147, 197, 253, 0.45)');
+    topGlow.addColorStop(1.0, 'transparent');
+    ctx.fillStyle = topGlow;
+    ctx.fillRect(0, 0, 512, 110);
+
+    // Studio Softbox 2: Right side vertical specular streak (sharp rim reflection)
+    const rightGlow = ctx.createLinearGradient(420, 0, 512, 0);
+    rightGlow.addColorStop(0.0, 'transparent');
+    rightGlow.addColorStop(0.6, 'rgba(255, 255, 255, 0.95)');
+    rightGlow.addColorStop(1.0, 'rgba(192, 132, 252, 0.65)');
+    ctx.fillStyle = rightGlow;
+    ctx.fillRect(400, 0, 112, 256);
+
+    // Studio Softbox 3: Left side cool blue fill
+    const leftGlow = ctx.createLinearGradient(0, 0, 100, 0);
+    leftGlow.addColorStop(0.0, 'rgba(56, 189, 248, 0.65)');
+    leftGlow.addColorStop(1.0, 'transparent');
+    ctx.fillStyle = leftGlow;
+    ctx.fillRect(0, 0, 100, 256);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+    return tex;
+  }
+
+  const studioEnvMap = createStudioEnvironmentTexture();
 
   // ── OPTICAL REFRACTIVE CRYSTAL SHADER WITH CHROMATIC DISPERSION (Exact Reference Match) ──
   const crystalVS = `
     varying vec3 vNormal;
     varying vec3 vViewPos;
+    varying vec3 vWorldNormal;
     void main() {
       vNormal = normalize(normalMatrix * normal);
       vec4 mv = modelViewMatrix * vec4(position, 1.0);
       vViewPos = -mv.xyz;
+      vWorldNormal = normalize(mat3(modelMatrix) * normal);
       gl_Position = projectionMatrix * mv;
     }
   `;
@@ -1502,61 +1552,88 @@ if (bg3dCanvas && window.THREE) {
   const crystalFS = `
     varying vec3 vNormal;
     varying vec3 vViewPos;
-    uniform float opacity;
+    varying vec3 vWorldNormal;
 
     void main() {
       vec3 n = normalize(vNormal);
       vec3 v = normalize(vViewPos);
       float fresnel = clamp(1.0 - abs(dot(v, n)), 0.0, 1.0);
-      float fTerm = pow(fresnel, 2.2);
+      float fTerm = pow(fresnel, 2.4);
       
-      // Prismatic Rainbow Dispersion (Red, Green, Blue Chromatic Aberration Split on facets)
-      float r = pow(clamp(1.0 - abs(dot(v, n + vec3(0.07, -0.02, 0.0))), 0.0, 1.0), 2.1);
-      float g = pow(clamp(1.0 - abs(dot(v, n + vec3(-0.02, 0.05, 0.0))), 0.0, 1.0), 1.9);
-      float b = pow(clamp(1.0 - abs(dot(v, n + vec3(-0.05, -0.03, 0.06))), 0.0, 1.0), 2.3);
-      vec3 rainbow = vec3(r, g, b);
+      // Prismatic Rainbow Dispersion on top facets (Exact match to reference photo rainbow band)
+      float topFacet = clamp(dot(n, normalize(vec3(0.2, 0.85, 0.4))), 0.0, 1.0);
+      float rainbowPhase = fract(topFacet * 1.6 + dot(vWorldNormal, vec3(0.1, 0.2, 0.3)));
+      vec3 rainbow = 0.5 + 0.5 * cos(6.28318 * (rainbowPhase + vec3(0.0, 0.33, 0.67)));
 
-      // Studio physical specular highlights (razor-sharp diamond sheen)
+      // Razor-sharp specular studio gleams
       vec3 lightDir1 = normalize(vec3(0.65, 0.85, 0.75));
       vec3 halfVec1 = normalize(lightDir1 + v);
-      float spec1 = pow(max(dot(n, halfVec1), 0.0), 54.0);
+      float spec1 = pow(max(dot(n, halfVec1), 0.0), 64.0);
 
       vec3 lightDir2 = normalize(vec3(-0.55, -0.45, 0.65));
       vec3 halfVec2 = normalize(lightDir2 + v);
-      float spec2 = pow(max(dot(n, halfVec2), 0.0), 36.0);
+      float spec2 = pow(max(dot(n, halfVec2), 0.0), 40.0);
 
-      // Deep glass clarity (diamond body with rainbow dispersion rims)
-      vec3 baseGlass = mix(vec3(0.04, 0.06, 0.09), vec3(0.88, 0.92, 0.98), fTerm * 0.45);
-      vec3 finalCol = mix(baseGlass, rainbow * 1.6, fTerm * 0.72);
-      finalCol += vec3(1.0, 1.0, 1.0) * spec1 * 0.95;
-      finalCol += vec3(0.85, 0.92, 1.0) * spec2 * 0.50;
+      // Optical clear glass: deep dark body with radiant diamond facet sheen
+      vec3 glassBase = mix(vec3(0.03, 0.05, 0.08), vec3(0.85, 0.92, 1.0), fTerm * 0.55);
+      vec3 col = mix(glassBase, rainbow * 1.8, topFacet * 0.75 * (0.3 + fTerm * 0.7));
+      col += vec3(1.0, 1.0, 1.0) * spec1 * 1.1;
+      col += vec3(0.85, 0.92, 1.0) * spec2 * 0.45;
 
-      gl_FragColor = vec4(finalCol, clamp(opacity + fTerm * 0.65, 0.0, 0.96));
+      // Crystal transparency: high clarity in center to reveal inner crystal
+      float alpha = clamp(0.18 + fTerm * 0.60 + topFacet * 0.25, 0.0, 0.94);
+      gl_FragColor = vec4(col, alpha);
     }
   `;
 
   const matCrystalGlass = new THREE.ShaderMaterial({
     vertexShader: crystalVS,
     fragmentShader: crystalFS,
-    uniforms: {
-      opacity: { value: 0.32 }
-    },
     transparent: true,
     depthWrite: false,
     side: THREE.DoubleSide
   });
 
-  // Razor-sharp silver facet outline wireframe
+  // Delicate razor-thin silver facet outline wireframe
   const matCrystalWire = new THREE.MeshBasicMaterial({
     color: 0xffffff,
     wireframe: true,
     transparent: true,
-    opacity: 0.45
+    opacity: 0.22
   });
 
-  // ── UNIFIED 3D HERO CLUSTER & AMBIENT GROUPS ──
+  // ── UNIFIED 3D HERO CLUSTER (Positioned safely on the right side of the screen) ──
   const heroCluster = new THREE.Group();
   scene.add(heroCluster);
+
+  let baseClusterX = 13.0;
+  let baseClusterY = 0.4;
+
+  function updateHero3DPlacement() {
+    const w = window.innerWidth;
+    if (w < 768) {
+      heroCluster.scale.setScalar(0.55);
+      baseClusterX = 2.0;
+      baseClusterY = -8.5;
+      heroCluster.position.set(baseClusterX, baseClusterY, -8.0);
+    } else if (w < 1180) {
+      heroCluster.scale.setScalar(0.78);
+      baseClusterX = 10.5;
+      baseClusterY = 0.2;
+      heroCluster.position.set(baseClusterX, baseClusterY, 0);
+    } else if (w < 1500) {
+      heroCluster.scale.setScalar(0.95);
+      baseClusterX = 13.0;
+      baseClusterY = 0.4;
+      heroCluster.position.set(baseClusterX, baseClusterY, 0);
+    } else {
+      heroCluster.scale.setScalar(1.05);
+      baseClusterX = 14.8;
+      baseClusterY = 0.6;
+      heroCluster.position.set(baseClusterX, baseClusterY, 0);
+    }
+  }
+  updateHero3DPlacement();
 
   const ambientGroup = new THREE.Group();
   scene.add(ambientGroup);
@@ -1569,7 +1646,7 @@ if (bg3dCanvas && window.THREE) {
 
     if (wireMat) {
       const wireMesh = new THREE.Mesh(geometry.clone(), wireMat);
-      wireMesh.scale.setScalar(1.004);
+      wireMesh.scale.setScalar(1.003);
       group.add(wireMesh);
     }
     return group;
@@ -1581,52 +1658,54 @@ if (bg3dCanvas && window.THREE) {
   const diamondGroup = new THREE.Group();
 
   // Outer Diamond Polyhedron (Faceted cut crystal)
-  const outerDiamondGeo = new THREE.IcosahedronGeometry(6.2, 0);
+  const outerDiamondGeo = new THREE.IcosahedronGeometry(4.8, 0);
   const outerDiamondMesh = new THREE.Mesh(outerDiamondGeo, matCrystalGlass);
   diamondGroup.add(outerDiamondMesh);
 
-  const outerDiamondWire = new THREE.Mesh(outerDiamondGeo.clone(), matCrystalWire);
-  outerDiamondWire.scale.setScalar(1.004);
+  // Razor-thin silver contour on true facet edges (EdgesGeometry avoids triangulated diagonals)
+  const outerDiamondWire = new THREE.LineSegments(
+    new THREE.EdgesGeometry(outerDiamondGeo),
+    new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.50 })
+  );
   diamondGroup.add(outerDiamondWire);
 
   // Inner Nested Polyhedron (Visible through transparent crystal facets)
-  const innerDiamondGeo = new THREE.IcosahedronGeometry(3.1, 0);
-  const innerDiamondMat = new THREE.MeshPhongMaterial({
-    color: 0x94a3b8,
-    emissive: 0x1e293b,
-    specular: 0xffffff,
-    shininess: 180,
+  const innerDiamondGeo = new THREE.IcosahedronGeometry(2.4, 0);
+  const innerDiamondMat = new THREE.MeshStandardMaterial({
+    color: 0x1e293b,
+    metalness: 0.92,
+    roughness: 0.15,
+    envMap: studioEnvMap,
+    envMapIntensity: 2.0,
     transparent: true,
-    opacity: 0.48
+    opacity: 0.60
   });
   const innerDiamondMesh = new THREE.Mesh(innerDiamondGeo, innerDiamondMat);
-  const innerDiamondWire = new THREE.Mesh(innerDiamondGeo.clone(), new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.75
-  }));
-  innerDiamondWire.scale.setScalar(1.01);
+  const innerDiamondWire = new THREE.LineSegments(
+    new THREE.EdgesGeometry(innerDiamondGeo),
+    new THREE.LineBasicMaterial({ color: 0x60a5fa, transparent: true, opacity: 0.70 })
+  );
   const innerDiamondGroup = new THREE.Group();
   innerDiamondGroup.add(innerDiamondMesh);
   innerDiamondGroup.add(innerDiamondWire);
   diamondGroup.add(innerDiamondGroup);
 
-  diamondGroup.position.set(14.8, 3.2, 0);
+  diamondGroup.position.set(3.6, 3.4, -0.6);
   diamondGroup.rotation.set(0.35, 0.55, 0.2);
   heroCluster.add(diamondGroup);
 
   // ══════════════════════════════════════════════════════════════
-  // POLISHED CHROME OPEN FRAME CUBES (Architectural & Geometric)
+  // POLISHED METALLIC GUNMETAL CHROME OPEN FRAME CUBES (Exact Reference Match)
   // ══════════════════════════════════════════════════════════════
-  const matChrome = new THREE.MeshPhongMaterial({
-    color: 0xd1d5db,
-    emissive: 0x111827,
-    specular: 0xffffff,
-    shininess: 240
+  const matChrome = new THREE.MeshStandardMaterial({
+    color: 0x111726,
+    metalness: 0.98,
+    roughness: 0.10,
+    envMap: studioEnvMap,
+    envMapIntensity: 2.8
   });
 
-  function createChromeCubeFrame(size = 3.6, thickness = 0.18) {
+  function createChromeCubeFrame(size = 3.0, thickness = 0.09) {
     const group = new THREE.Group();
     const half = size / 2;
     const cornerGeo = new THREE.BoxGeometry(thickness * 1.05, thickness * 1.05, thickness * 1.05);
@@ -1667,58 +1746,62 @@ if (bg3dCanvas && window.THREE) {
       group.add(c);
     });
 
+    // Precision chamfer bevel catchlight (EdgesGeometry only, NO diagonal triangles)
+    const bevelLine = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(size, size, size)),
+      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.40 })
+    );
+    group.add(bevelLine);
+
     return group;
   }
 
-  // Base isometric-style orientation matching the reference photo
+  // Base isometric orientation matching reference photo
   const isoRot = new THREE.Euler(0.42, 0.62, 0.12);
 
-  // Cube Frame 1: Top-left
-  const chromeCube1 = createChromeCubeFrame(4.2, 0.20);
-  chromeCube1.position.set(3.8, 3.2, 1.2);
+  // Cube Frame 1: Top-left of cluster (positioned safely on right side)
+  const chromeCube1 = createChromeCubeFrame(3.1, 0.09);
+  chromeCube1.position.set(-4.5, 2.4, 1.2);
   chromeCube1.rotation.copy(isoRot);
   heroCluster.add(chromeCube1);
 
-  // Cube Frame 2: Bottom-left
-  const chromeCube2 = createChromeCubeFrame(3.8, 0.18);
-  chromeCube2.position.set(1.0, -1.2, 1.8);
+  // Cube Frame 2: Bottom-left of cluster
+  const chromeCube2 = createChromeCubeFrame(2.9, 0.09);
+  chromeCube2.position.set(-4.8, -1.8, 1.8);
   chromeCube2.rotation.copy(isoRot);
   heroCluster.add(chromeCube2);
 
   // Cube Frame 3: Center-bottom
-  const chromeCube3 = createChromeCubeFrame(3.6, 0.17);
-  chromeCube3.position.set(7.5, -4.8, 0.6);
+  const chromeCube3 = createChromeCubeFrame(2.8, 0.09);
+  chromeCube3.position.set(-0.4, -4.4, 0.8);
   chromeCube3.rotation.copy(isoRot);
   heroCluster.add(chromeCube3);
 
   // Cube Frame 4: Lower-right (below diamond)
-  const chromeCube4 = createChromeCubeFrame(3.5, 0.16);
-  chromeCube4.position.set(13.2, -3.8, -0.6);
+  const chromeCube4 = createChromeCubeFrame(2.9, 0.09);
+  chromeCube4.position.set(4.6, -3.8, -0.6);
   chromeCube4.rotation.copy(isoRot);
   heroCluster.add(chromeCube4);
 
-  // ── FROSTED GLASS SOLID CUBE (Near Cube Frame 2/3) ──
-  const frostedCubeGeo = new THREE.BoxGeometry(1.9, 1.9, 1.9);
+  // ── FROSTED GLASS SOLID CUBE (Nestled between Cube 2 and Cube 3) ──
+  const frostedCubeGeo = new THREE.BoxGeometry(1.5, 1.5, 1.5);
   const frostedCubeMat = new THREE.MeshPhongMaterial({
     color: 0xf1f5f9,
-    emissive: 0x1e293b,
+    emissive: 0x0f172a,
     specular: 0xffffff,
     shininess: 160,
     transparent: true,
     opacity: 0.68
   });
   const frostedCubeMesh = new THREE.Mesh(frostedCubeGeo, frostedCubeMat);
-  const frostedCubeWire = new THREE.Mesh(frostedCubeGeo.clone(), new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.85
-  }));
-  frostedCubeWire.scale.setScalar(1.01);
+  const frostedCubeWire = new THREE.LineSegments(
+    new THREE.EdgesGeometry(frostedCubeGeo),
+    new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 })
+  );
   const frostedCubeGroup = new THREE.Group();
   frostedCubeGroup.add(frostedCubeMesh);
   frostedCubeGroup.add(frostedCubeWire);
-  frostedCubeGroup.position.set(4.2, -4.2, 2.2);
+  frostedCubeGroup.position.set(-2.4, -4.0, 2.0);
   frostedCubeGroup.rotation.copy(isoRot);
   heroCluster.add(frostedCubeGroup);
 
@@ -1730,52 +1813,45 @@ if (bg3dCanvas && window.THREE) {
     specular: 0xffffff,
     shininess: 140,
     transparent: true,
-    opacity: 0.55
-  });
-  const voxelWireMat = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.60
+    opacity: 0.50
   });
 
   const floatingVoxels = [];
   const voxelPositions = [
-    // Top-left diagonal stream
-    [5.8, 6.2, 0.5, 0.55],
-    [7.0, 7.5, -0.5, 0.48],
-    [7.8, 8.2, -1.0, 0.38],
-    [8.4, 9.0, -1.5, 0.35],
-    // Between Cube 1 and Diamond
-    [10.2, 4.8, 0.2, 0.45],
-    [11.5, 5.8, -0.4, 0.40],
-    [19.2, 8.8, -1.2, 0.48],
-    // Mid diagonal stream
-    [6.8, 0.5, 1.2, 0.50],
-    [8.2, -0.8, 1.0, 0.42],
-    [9.5, -1.8, 0.8, 0.46],
-    // Inside/around Cube Frame 4
-    [12.8, -2.2, 0.0, 0.45],
-    [15.8, -2.8, -1.2, 0.50],
-    [14.5, -5.8, -0.8, 0.42],
-    // Bottom scattered voxels
-    [2.2, -4.8, 1.8, 0.38],
-    [5.5, -7.0, 1.2, 0.45],
-    [9.0, -6.8, 0.5, 0.48],
-    [11.2, -7.5, 0.0, 0.40],
-    [17.0, -5.2, -1.5, 0.36],
-    [17.8, -6.5, -2.0, 0.42],
-    [18.5, -7.8, -2.5, 0.38]
+    // Stream 1: Rising diagonally between Cube 1 and Diamond
+    [-2.2, 4.8, 0.8, 0.36],
+    [-1.0, 6.0, 0.2, 0.32],
+    [0.2, 7.2, -0.4, 0.28],
+    [1.4, 8.4, -1.0, 0.34],
+    [7.8, 8.2, -1.2, 0.38],
+    // Stream 2: Between Cube 1 and Cube 3
+    [-1.8, 0.8, 1.4, 0.38],
+    [-0.5, -0.4, 1.1, 0.34],
+    [0.8, -1.6, 0.8, 0.36],
+    [2.2, -2.8, 0.4, 0.32],
+    // Stream 3: Under Diamond & Cube 4
+    [4.2, -1.4, 0.1, 0.36],
+    [6.8, -2.0, -1.0, 0.40],
+    [6.0, -5.0, -0.8, 0.34],
+    // Stream 4: Beneath Frosted Cube & Cube 3
+    [-4.0, -4.5, 2.0, 0.32],
+    [-1.6, -6.0, 1.2, 0.36],
+    [1.0, -6.2, 0.5, 0.38],
+    [2.8, -7.0, 0.0, 0.32],
+    [7.2, -5.2, -1.4, 0.30],
+    [8.0, -6.4, -2.0, 0.34]
   ];
 
   voxelPositions.forEach(([x, y, z, s]) => {
     const vGeo = new THREE.BoxGeometry(s, s, s);
     const vMesh = new THREE.Mesh(vGeo, voxelMat);
-    const vWire = new THREE.Mesh(vGeo.clone(), voxelWireMat);
-    vWire.scale.setScalar(1.02);
+    const vEdges = new THREE.LineSegments(
+      new THREE.EdgesGeometry(vGeo),
+      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.60 })
+    );
     const vGroup = new THREE.Group();
     vGroup.add(vMesh);
-    vGroup.add(vWire);
+    vGroup.add(vEdges);
     vGroup.position.set(x, y, z);
     vGroup.rotation.copy(isoRot);
     vGroup.userData = { baseY: y, speed: 0.3 + Math.random() * 0.4, rotOffset: Math.random() * Math.PI };
@@ -1829,11 +1905,7 @@ if (bg3dCanvas && window.THREE) {
   }
 
   const cubeSymbols = [
-    { sym: '{ }', pos: [7, 7, -6],    size: 1.3, rot: [0.3, 0.5, 0.1] },
-    { sym: '</>', pos: [22, -6, -4],  size: 1.4, rot: [0.8, 0.2, 0.4] },
-    { sym: '=>',  pos: [15, -8, -1],  size: 1.1, rot: [0.1, 0.9, 0.3] },
-    { sym: '[ ]', pos: [-5, -6, -8],  size: 1.2, rot: [0.4, 0.7, 0.2] },
-    // Scroll depth cubes
+    // Scroll depth cubes (About, Services, Process, Contact)
     { sym: '{ }', pos: [-12, -40, -4], size: 1.5, rot: [0.4, 0.5, 0.2] },
     { sym: '</>', pos: [14, -70, -3],  size: 1.4, rot: [0.2, 0.7, 0.5] },
     { sym: '[ ]', pos: [-8, -100, -5], size: 1.3, rot: [0.6, 0.3, 0.8] },
@@ -1915,6 +1987,7 @@ if (bg3dCanvas && window.THREE) {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    updateHero3DPlacement();
   }, { passive: true });
 
   // ══════════════════════════════════════════════════════════════
@@ -1936,27 +2009,27 @@ if (bg3dCanvas && window.THREE) {
     // ── Diamond Crystal Polyhedron Rotations & Fluid Breathing ──
     diamondGroup.rotation.x += 0.0012;
     diamondGroup.rotation.y += 0.0018;
-    diamondGroup.position.y = 3.2 + Math.sin(time * 0.5) * 0.35;
+    diamondGroup.position.y = 3.4 + Math.sin(time * 0.5) * 0.35;
 
     // Inner Nested Polyhedron Layered Counter-Spin
     innerDiamondGroup.rotation.x -= 0.0022;
     innerDiamondGroup.rotation.y += 0.0028;
 
     // ── Polished Chrome Frame Cubes Subtle Hover Physics ──
-    chromeCube1.position.y = 3.2 + Math.sin(time * 0.45) * 0.22;
-    chromeCube2.position.y = -1.2 + Math.sin(time * 0.45 + 0.8) * 0.20;
-    chromeCube3.position.y = -4.8 + Math.sin(time * 0.45 + 1.6) * 0.18;
+    chromeCube1.position.y = 2.4 + Math.sin(time * 0.45) * 0.20;
+    chromeCube2.position.y = -1.8 + Math.sin(time * 0.45 + 0.8) * 0.18;
+    chromeCube3.position.y = -4.4 + Math.sin(time * 0.45 + 1.6) * 0.18;
     chromeCube4.position.y = -3.8 + Math.sin(time * 0.45 + 2.4) * 0.20;
-    frostedCubeGroup.position.y = -4.2 + Math.sin(time * 0.45 + 1.2) * 0.18;
+    frostedCubeGroup.position.y = -4.0 + Math.sin(time * 0.45 + 1.2) * 0.18;
 
     // ── Floating Glass Voxels Smooth Drift ──
     floatingVoxels.forEach(v => {
-      v.position.y = v.userData.baseY + Math.sin(time * v.userData.speed + v.userData.rotOffset) * 0.22;
+      v.position.y = v.userData.baseY + Math.sin(time * v.userData.speed + v.userData.rotOffset) * 0.20;
     });
 
     // ── Interactive Mouse Light (Sharp specular gleam on crystal & chrome) ──
-    mouseCrystalLight.position.x = 14.8 + targetX * 0.6;
-    mouseCrystalLight.position.y = 3.2 - targetY * 0.6;
+    mouseCrystalLight.position.x = baseClusterX + 3.5 + targetX * 0.5;
+    mouseCrystalLight.position.y = baseClusterY + 3.0 - targetY * 0.5;
 
     // ── Section Object Rotations ──
     sectionObjects.forEach((obj, i) => {
@@ -1987,7 +2060,7 @@ if (bg3dCanvas && window.THREE) {
     // Gentle upward drift for the hero cluster: max ~20 units with smooth lerp inertia
     const targetHeroY = (scrollY / heroHeight) * 20;
     heroScrollY += (targetHeroY - heroScrollY) * 0.08;
-    heroCluster.position.y = heroScrollY;
+    heroCluster.position.y = baseClusterY + heroScrollY;
 
     // Ambient background drift: very slow and subtle
     ambientGroup.position.y = (scrollY / heroHeight) * 10;
