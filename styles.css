@@ -4948,7 +4948,7 @@ section,
   z-index: 0;
 }
 
-/* Deep Cyan Glow behind "Digital Solutions" */
+/* Deep Soft Blue Ambient Glow behind Headline */
 .glow-cyan-ambient {
   position: absolute;
   top: 20%;
@@ -4956,13 +4956,13 @@ section,
   width: 580px;
   height: 580px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.35) 0%, rgba(59, 130, 246, 0.18) 50%, transparent 75%);
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.16) 0%, rgba(37, 99, 235, 0.08) 50%, transparent 75%);
   filter: blur(85px);
   pointer-events: none;
   z-index: 0;
 }
 
-/* Deep Vivid Magenta / Violet Ambient Glow behind 3D Sculpture */
+/* Deep Diamond Platinum / Prismatic Ambient Glow behind 3D Crystal */
 .glow-magenta-ambient {
   position: absolute;
   top: 8%;
@@ -4970,7 +4970,7 @@ section,
   width: 720px;
   height: 720px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(217, 70, 239, 0.32) 0%, rgba(139, 92, 246, 0.22) 38%, rgba(6, 182, 212, 0.12) 65%, transparent 80%);
+  background: radial-gradient(circle, rgba(147, 197, 253, 0.18) 0%, rgba(129, 140, 248, 0.10) 45%, transparent 75%);
   filter: blur(100px);
   pointer-events: none;
   z-index: 0;
