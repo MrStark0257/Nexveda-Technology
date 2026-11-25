@@ -4007,6 +4007,15 @@ body.light-theme .t-body {
   font-size: 0.85rem;
 }
 
+.footer-bottom a {
+  color: var(--muted);
+  transition: color 0.25s ease;
+}
+
+.footer-bottom a:hover {
+  color: #38bdf8;
+}
+
 .scroll-top {
   position: fixed;
   right: 1.5rem;

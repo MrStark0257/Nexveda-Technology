@@ -3,4 +3,13 @@
   <url>
     <loc>https://nexveda.example.com/</loc>
   </url>
+  <url>
+    <loc>https://nexveda.example.com/privacy-policy.html</loc>
+  </url>
+  <url>
+    <loc>https://nexveda.example.com/terms-and-conditions.html</loc>
+  </url>
+  <url>
+    <loc>https://nexveda.example.com/refund-policy.html</loc>
+  </url>
 </urlset>

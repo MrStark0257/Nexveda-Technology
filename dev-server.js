@@ -370,6 +370,10 @@ const PUBLIC_STATIC_FILES = new Set([
   '/index.html',
   '/styles.css',
   '/script.js',
+  '/policy.css',
+  '/privacy-policy.html',
+  '/refund-policy.html',
+  '/terms-and-conditions.html',
   '/robots.txt',
   '/sitemap.xml',
   '/site.webmanifest'
