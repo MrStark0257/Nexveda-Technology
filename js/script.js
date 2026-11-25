@@ -607,17 +607,17 @@ if (heroFrameEl) {
 }
 
 /* ==========================================================================
-   SANCHIT SHARMA BIO POP-UP MODAL (AI GRAPHIC DESIGNER & FRONTEND WEB DESIGNER)
+   SANCHIT SHARMA BIO POP-UP MODAL (CO-FOUNDER & CREATIVE DIRECTOR)
    ========================================================================== */
 const sanchitProfileData = {
   name: "SANCHIT SHARMA",
-  role: "AI GRAPHIC DESIGNER × FRONTEND WEB DESIGNER",
+  role: "CO-FOUNDER & CREATIVE DIRECTOR • AI & FRONTEND LEAD",
   location: "Kullu, Himachal Pradesh, India",
   phone: "+91 8988113310",
   email: "sanchitsharma217@gmail.com",
   portfolioWebUrl: "https://sanchitsharma217-arch.github.io/Sanchit-Portfolio/",
   avatarUrl: "images/sanchit-sharma.jpg",
-  summary: "Creative designer working at the intersection of AI, graphic design, and frontend development. Experienced with AI-generated visuals, Photoshop, thumbnails, and web interfaces, with a focus on original visual concepts and digital experiences. Constantly learning, experimenting, and building across design and web.",
+  summary: "Co-Founder and Creative Director at Nexveda Technology, working at the intersection of AI imagery, visual branding, and modern frontend development. Experienced with AI-generated visuals, Photoshop master-level compositing, brand design, and immersive web interfaces with dynamic animations. Constantly driving creative excellence and digital product experiences.",
   skillsDesign: ["Photoshop (Compositing & Retouching)", "AI Asset Collection (Generative Artwork)", "YouTube Thumbnail Design", "Visual Branding & Storytelling", "Poster Artwork & Image Manipulation"],
   skillsTech: ["Frontend Web Design", "HTML5 & CSS3", "Dynamic Scroll Animations", "Responsive Interfaces", "Web Graphics Optimization"],
   projects: [
