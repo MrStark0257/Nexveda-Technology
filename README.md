@@ -69,7 +69,8 @@ The Nexveda Technologies platform is a high-performance, responsive corporate we
 ```text
 Nexveda-Technology/
 ├── index.html           # Main application landing page & layout
-├── dev-server.js        # Express server, security middleware, PostgreSQL/SQLite, email dispatch
+├── server.js            # Production entrypoint (starts Express server)
+├── dev-server.js        # Express app, security middleware, PostgreSQL/SQLite, email dispatch
 ├── package.json         # Project metadata and dependencies
 ├── .env.example         # Safe environment variable template (copy to .env locally)
 ├── .gitignore           # Git ignore list (.env, node_modules, data/*.db)
