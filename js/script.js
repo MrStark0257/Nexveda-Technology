@@ -598,7 +598,7 @@ if (heroFrameEl) {
     const rect = heroFrameEl.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width - 0.5;
     const y = (event.clientY - rect.top) / rect.height - 0.5;
-    heroFrameEl.style.transform = `perspective(1200px) rotateX(${(-y * 7).toFixed(2)}deg) rotateY(${(x * 8).toFixed(2)}deg) translateY(-4px)`;
+    heroFrameEl.style.transform = `perspective(1200px) rotateX(${(-y * 2).toFixed(2)}deg) rotateY(${(x * 2).toFixed(2)}deg) translateY(-2px)`;
   });
 
   heroFrameEl.addEventListener('mouseleave', () => {
@@ -1036,10 +1036,10 @@ if (!isTouchDevice) {
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
 
-      const rotateX = ((y - centerY) / centerY) * -6;
-      const rotateY = ((x - centerX) / centerX) * 6;
+      const rotateX = ((y - centerY) / centerY) * -2.5;
+      const rotateY = ((x - centerX) / centerX) * 2.5;
 
-      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-3px)`;
     });
 
     card.addEventListener('mouseleave', () => {
@@ -2088,8 +2088,9 @@ if (bg3dCanvas && window.THREE) {
   let frameCount = 0;
 
   window.addEventListener('mousemove', (e) => {
-    mouseX = (e.clientX - window.innerWidth / 2) * 0.02;
-    mouseY = (e.clientY - window.innerHeight / 2) * 0.02;
+    // Option 1: Ultra-subtle & calm mouse scaling (reduced by 85%)
+    mouseX = (e.clientX - window.innerWidth / 2) * 0.003;
+    mouseY = (e.clientY - window.innerHeight / 2) * 0.003;
   }, { passive: true });
 
   window.addEventListener('resize', () => {
@@ -2108,12 +2109,12 @@ if (bg3dCanvas && window.THREE) {
     frameCount++;
     const time = frameCount * 0.01;
 
-    targetX += (mouseX - targetX) * 0.04;
-    targetY += (mouseY - targetY) * 0.04;
+    targetX += (mouseX - targetX) * 0.03;
+    targetY += (mouseY - targetY) * 0.03;
 
-    // ── Unified Auto-Rotation & Mouse Tilt for Hero Cluster ──
-    heroCluster.rotation.x = targetY * 0.002 + Math.cos(time * 0.28) * 0.025;
-    heroCluster.rotation.y = targetX * 0.002 + Math.sin(time * 0.35) * 0.035;
+    // ── Unified Auto-Rotation & Ultra-Subtle Mouse Tilt for Hero Cluster ──
+    heroCluster.rotation.x = targetY * 0.0004 + Math.cos(time * 0.28) * 0.025;
+    heroCluster.rotation.y = targetX * 0.0004 + Math.sin(time * 0.35) * 0.035;
 
     // ── Diamond Crystal Polyhedron Continuous Auto-Rotation & Breathing ──
     diamondGroup.rotation.x += 0.0016;
@@ -2160,9 +2161,9 @@ if (bg3dCanvas && window.THREE) {
       v.position.y = v.userData.baseY + Math.sin(time * v.userData.speed + v.userData.rotOffset) * 0.20;
     });
 
-    // ── Interactive Mouse Light (Sharp specular gleam on crystal & chrome) ──
-    mouseCrystalLight.position.x = baseClusterX + 3.5 + targetX * 0.5;
-    mouseCrystalLight.position.y = baseClusterY + 3.0 - targetY * 0.5;
+    // ── Interactive Mouse Light (Ultra-subtle specular gleam) ──
+    mouseCrystalLight.position.x = baseClusterX + 3.5 + targetX * 0.06;
+    mouseCrystalLight.position.y = baseClusterY + 3.0 - targetY * 0.06;
 
     // ── Section Object Rotations ──
     sectionObjects.forEach((obj, i) => {
@@ -2181,9 +2182,9 @@ if (bg3dCanvas && window.THREE) {
     particles.rotation.y += 0.00018;
     particleMat.opacity = 0.55 + Math.sin(time * 1.6) * 0.15;
 
-    // ── Camera: Mouse Tilt Inertia ──
-    camera.position.x = targetX * 0.35;
-    camera.position.y = -targetY * 0.35;
+    // ── Camera: Ultra-Subtle Whispering Depth ──
+    camera.position.x = targetX * 0.04;
+    camera.position.y = -targetY * 0.04;
     camera.lookAt(scene.position);
 
     // ── Solution 1: Unified, Smooth & Gentle Parallax Scroll ──
