@@ -486,6 +486,7 @@ if (contactForm) {
     const email = formData.get('email')?.toString().trim();
     const phone = formData.get('phone')?.toString().trim();
     const message = formData.get('message')?.toString().trim();
+    const website = formData.get('website')?.toString().trim() || '';
 
     if (!name || !email || !message) {
       formMessage.textContent = 'Please fill out all required fields.';
@@ -506,28 +507,33 @@ if (contactForm) {
     formMessage.textContent = '';
 
     try {
-      // 1. Try local or Vercel serverless API first
+      // 1. Try backend API first
       let apiSucceeded = false;
+      let backendRejected = false;
       try {
         const localRes = await fetch('/api/contact', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, phone, message })
+          body: JSON.stringify({ name, email, phone, message, website })
         });
-        if (localRes.ok) {
-          const localData = await localRes.json();
-          if (localData.success) {
-            apiSucceeded = true;
-            formMessage.style.color = '#10b981';
-            formMessage.textContent = localData.message || 'Thanks! Your message has been sent successfully.';
-            contactForm.reset();
-          }
+        const contentType = localRes.headers.get('content-type') || '';
+        const localData = contentType.includes('application/json') ? await localRes.json() : null;
+
+        if (localRes.ok && localData?.success) {
+          apiSucceeded = true;
+          formMessage.style.color = '#10b981';
+          formMessage.textContent = localData.message || 'Thanks! Your message has been sent successfully.';
+          contactForm.reset();
+        } else if (localRes.status === 400 || localRes.status === 403 || localRes.status === 413 || localRes.status === 429) {
+          backendRejected = true;
+          formMessage.style.color = '#ef4444';
+          formMessage.textContent = localData?.message || 'Unable to submit form right now. Please try again later.';
         }
       } catch (localErr) {
-        console.log('Local/Vercel API not reachable, falling back to static service...');
+        console.log('Backend API not reachable, falling back to static service...');
       }
 
-      if (apiSucceeded) {
+      if (apiSucceeded || backendRejected) {
         return;
       }
 
@@ -698,7 +704,7 @@ function openSanchitModal() {
         </svg>
         <span><strong>Live Web &amp; Design Portfolio:</strong> Explore Interactive Web Projects, AI Visuals &amp; Artworks</span>
       </div>
-      <a href="${data.portfolioWebUrl}" target="_blank" rel="noopener" class="btn-drive-link">
+      <a href="${data.portfolioWebUrl}" target="_blank" rel="noopener noreferrer" class="btn-drive-link">
         <span>Visit Web Portfolio</span>
       </a>
     </div>
@@ -1222,16 +1228,16 @@ function openCaseStudy(title) {
             </div>
             <div class="case-actions" style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin-top: 1.5rem;">
               ${data.liveUrl ? `
-                <a href="${data.liveUrl}" target="_blank" rel="noopener" class="btn btn-secondary-pill" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+                <a href="${data.liveUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary-pill" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
                   <span>Launch Live Demo ↗</span>
                 </a>
               ` : ''}
               ${data.repoUrl ? `
-                <a href="${data.repoUrl}" target="_blank" rel="noopener" class="btn btn-secondary-pill" style="border-color: rgba(56, 189, 248, 0.3);">
+                <a href="${data.repoUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary-pill" style="border-color: rgba(56, 189, 248, 0.3);">
                   <span>GitHub Repo ↗</span>
                 </a>
               ` : ''}
-              <a href="#contact" class="btn btn-primary-pill" onclick="closeCaseModal()">
+              <a href="#contact" class="btn btn-primary-pill case-inquire-btn">
                 <span>Inquire About Similar Build</span>
                 <svg class="btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
               </a>
@@ -1240,6 +1246,11 @@ function openCaseStudy(title) {
         </div>
       </div>
     `;
+
+    const inquireBtn = caseModalContent.querySelector('.case-inquire-btn');
+    if (inquireBtn) {
+      inquireBtn.addEventListener('click', closeCaseModal);
+    }
 
     // Bind gallery thumbnail switching
     caseModalContent.querySelectorAll('.gallery-thumb-btn').forEach((thumb) => {
