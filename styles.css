@@ -5237,6 +5237,9 @@ img, video, canvas, svg {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 2.2rem !important;
   }
+  .footer-grid > div:first-child {
+    grid-column: 1 / -1;
+  }
 
   /* Ambient Glows scaling */
   .glow-cyan-ambient,
@@ -5455,6 +5458,9 @@ img, video, canvas, svg {
   .footer-grid {
     grid-template-columns: 1fr !important;
     gap: 2rem !important;
+  }
+  .footer-grid > div:first-child {
+    grid-column: auto;
   }
 
   .footer-bottom {
