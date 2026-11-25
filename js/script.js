@@ -598,7 +598,7 @@ if (heroFrameEl) {
     const rect = heroFrameEl.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width - 0.5;
     const y = (event.clientY - rect.top) / rect.height - 0.5;
-    heroFrameEl.style.transform = `perspective(1200px) rotateX(${(-y * 2).toFixed(2)}deg) rotateY(${(x * 2).toFixed(2)}deg) translateY(-2px)`;
+    heroFrameEl.style.transform = `perspective(1200px) rotateX(${(-y * 7.5).toFixed(2)}deg) rotateY(${(x * 7.5).toFixed(2)}deg) translateY(-5px)`;
   });
 
   heroFrameEl.addEventListener('mouseleave', () => {
@@ -970,13 +970,13 @@ if (cursorDot && cursorRing) {
     }, { passive: true });
 
     function renderCursor() {
-      dotX += (mouseX - dotX) * 0.5;
-      dotY += (mouseY - dotY) * 0.5;
+      dotX += (mouseX - dotX) * 0.55;
+      dotY += (mouseY - dotY) * 0.55;
       ringX += (mouseX - ringX) * 0.18;
       ringY += (mouseY - ringY) * 0.18;
 
       cursorDot.style.transform = `translate3d(${dotX}px, ${dotY}px, 0) translate(-50%, -50%)`;
-      cursorRing.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`;
+      cursorRing.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%) rotate(45deg)`;
 
       requestAnimationFrame(renderCursor);
     }
@@ -999,22 +999,23 @@ if (cursorDot && cursorRing) {
       ripple.style.position = 'fixed';
       ripple.style.left = `${e.clientX}px`;
       ripple.style.top = `${e.clientY}px`;
-      ripple.style.width = '10px';
-      ripple.style.height = '10px';
-      ripple.style.borderRadius = '50%';
-      ripple.style.border = '2px solid #38bdf8';
+      ripple.style.width = '14px';
+      ripple.style.height = '14px';
+      ripple.style.borderRadius = '3px';
+      ripple.style.border = '1.5px solid #00f0ff';
+      ripple.style.boxShadow = '0 0 16px rgba(0, 240, 255, 0.9), inset 0 0 10px rgba(0, 240, 255, 0.4)';
       ripple.style.pointerEvents = 'none';
       ripple.style.zIndex = '9999';
-      ripple.style.transform = 'translate(-50%, -50%) scale(1)';
-      ripple.style.transition = 'transform 0.5s cubic-bezier(0.1, 0.8, 0.3, 1), opacity 0.5s ease';
+      ripple.style.transform = 'translate(-50%, -50%) rotate(45deg) scale(1)';
+      ripple.style.transition = 'transform 0.55s cubic-bezier(0.12, 0.8, 0.25, 1), opacity 0.55s ease';
       document.body.appendChild(ripple);
 
       setTimeout(() => {
-        ripple.style.transform = 'translate(-50%, -50%) scale(5)';
+        ripple.style.transform = 'translate(-50%, -50%) rotate(45deg) scale(6)';
         ripple.style.opacity = '0';
       }, 10);
 
-      setTimeout(() => ripple.remove(), 550);
+      setTimeout(() => ripple.remove(), 580);
     });
   } else {
     cursorDot.style.display = 'none';
@@ -1036,10 +1037,10 @@ if (!isTouchDevice) {
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
 
-      const rotateX = ((y - centerY) / centerY) * -2.5;
-      const rotateY = ((x - centerX) / centerX) * 2.5;
+      const rotateX = ((y - centerY) / centerY) * -6.5;
+      const rotateY = ((x - centerX) / centerX) * 6.5;
 
-      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-3px)`;
+      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-5px)`;
     });
 
     card.addEventListener('mouseleave', () => {
@@ -2088,9 +2089,9 @@ if (bg3dCanvas && window.THREE) {
   let frameCount = 0;
 
   window.addEventListener('mousemove', (e) => {
-    // Option 1: Ultra-subtle & calm mouse scaling (reduced by 85%)
-    mouseX = (e.clientX - window.innerWidth / 2) * 0.003;
-    mouseY = (e.clientY - window.innerHeight / 2) * 0.003;
+    // Rich, responsive mouse parallax tracking
+    mouseX = (e.clientX - window.innerWidth / 2) * 0.015;
+    mouseY = (e.clientY - window.innerHeight / 2) * 0.015;
   }, { passive: true });
 
   window.addEventListener('resize', () => {
@@ -2109,21 +2110,23 @@ if (bg3dCanvas && window.THREE) {
     frameCount++;
     const time = frameCount * 0.01;
 
-    targetX += (mouseX - targetX) * 0.03;
-    targetY += (mouseY - targetY) * 0.03;
+    targetX += (mouseX - targetX) * 0.055;
+    targetY += (mouseY - targetY) * 0.055;
 
-    // ── Unified Auto-Rotation & Ultra-Subtle Mouse Tilt for Hero Cluster ──
-    heroCluster.rotation.x = targetY * 0.0004 + Math.cos(time * 0.28) * 0.025;
-    heroCluster.rotation.y = targetX * 0.0004 + Math.sin(time * 0.35) * 0.035;
+    // ── Unified Auto-Rotation & Responsive 3D Mouse Tilt for Hero Cluster ──
+    heroCluster.rotation.x = targetY * 0.014 + Math.cos(time * 0.28) * 0.025;
+    heroCluster.rotation.y = targetX * 0.016 + Math.sin(time * 0.35) * 0.035;
 
     // ── Diamond Crystal Polyhedron Continuous Auto-Rotation & Breathing ──
     diamondGroup.rotation.x += 0.0016;
     diamondGroup.rotation.y += 0.0022;
+    diamondGroup.position.x = 3.6;
     diamondGroup.position.y = 3.4 + Math.sin(time * 0.5) * 0.35;
 
     // Inner Nested Polyhedron Layered Counter-Spin
     innerDiamondGroup.rotation.x -= 0.0028;
     innerDiamondGroup.rotation.y += 0.0035;
+    innerDiamondGroup.position.x = 0;
 
     // ── Polished Chrome Frame Cubes Continuous 3D Auto-Rotation & Hover Physics ──
     chromeCube1.rotation.y += 0.0030;
@@ -2161,9 +2164,9 @@ if (bg3dCanvas && window.THREE) {
       v.position.y = v.userData.baseY + Math.sin(time * v.userData.speed + v.userData.rotOffset) * 0.20;
     });
 
-    // ── Interactive Mouse Light (Ultra-subtle specular gleam) ──
-    mouseCrystalLight.position.x = baseClusterX + 3.5 + targetX * 0.06;
-    mouseCrystalLight.position.y = baseClusterY + 3.0 - targetY * 0.06;
+    // ── Interactive Mouse Light (Responsive specular gleam on crystal & chrome) ──
+    mouseCrystalLight.position.x = baseClusterX + 3.5 + targetX * 0.40;
+    mouseCrystalLight.position.y = baseClusterY + 3.0 - targetY * 0.40;
 
     // ── Section Object Rotations ──
     sectionObjects.forEach((obj, i) => {
@@ -2178,13 +2181,15 @@ if (bg3dCanvas && window.THREE) {
       cube.rotation.y += cube.userData.rotSpeed * 0.4;
     });
 
-    // ── Cosmic Starfield Twinkle & Drift ──
+    // ── Cosmic Starfield Twinkle & Parallax Counter-Drift ──
     particles.rotation.y += 0.00018;
+    particles.position.x = -targetX * 0.08;
+    particles.position.y = targetY * 0.08;
     particleMat.opacity = 0.55 + Math.sin(time * 1.6) * 0.15;
 
-    // ── Camera: Ultra-Subtle Whispering Depth ──
-    camera.position.x = targetX * 0.04;
-    camera.position.y = -targetY * 0.04;
+    // ── Camera: Smooth & Balanced Parallax Depth ──
+    camera.position.x = targetX * 0.20;
+    camera.position.y = -targetY * 0.20;
     camera.lookAt(scene.position);
 
     // ── Solution 1: Unified, Smooth & Gentle Parallax Scroll ──
