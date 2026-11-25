@@ -3,4 +3,4 @@ Allow: /
 Disallow: /api/
 Disallow: /data/
 
-Sitemap: https://mrstark0257.github.io/Nexveda-Technology/sitemap.xml
+Sitemap: https://nexvedatechnology.com/sitemap.xml

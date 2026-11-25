@@ -17,7 +17,7 @@
 
 <br />
 
-[🌐 Live Demo](https://mrstark0257.github.io/Nexveda-Technology/) • [💻 GitHub Repo](https://github.com/MrStark0257/Nexveda-Technology) • [✨ Features](#-key-features) • [🛠️ Tech Stack](#-technology-stack) • [🚀 Getting Started](#-getting-started) • [🔌 API Reference](#-api-reference)
+[🌐 Live Site](https://nexvedatechnology.com/) • [💻 GitHub Repo](https://github.com/MrStark0257/Nexveda-Technology) • [✨ Features](#-key-features) • [🛠️ Tech Stack](#-technology-stack) • [🚀 Getting Started](#-getting-started) • [🔌 API Reference](#-api-reference)
 
 ---
 
@@ -55,8 +55,9 @@ The Nexveda Technologies platform is a high-performance, responsive corporate we
 ### Backend & Storage
 - **Runtime & Server**: [Node.js](https://nodejs.org/), [Express.js (v4.21)](https://expressjs.com/)
 - **Databases**:
-  - **SQLite3** (Zero-configuration default; auto-provisions `data/nexveda.db`)
-  - **PostgreSQL** (Enterprise production support via `pg` pool with automated schema & database creation)
+  - **PostgreSQL** (Production database via `pg` pool + `DATABASE_URL`, e.g. Neon PostgreSQL with automatic `submissions` table creation)
+  - **SQLite3** (Optional local fallback via `DB_TYPE=sqlite`, auto-provisions `data/nexveda.db`)
+- **Security**: CSP headers, strict static asset whitelist, origin-restricted CORS (`ALLOWED_ORIGINS`), proxy-aware rate limiting (`TRUST_PROXY`), honeypot anti-bot field, and email HTML/header sanitization
 - **Email Notifications**:
   - **Nodemailer** (SMTP support for Gmail and custom mail servers)
   - **Resend API** (Transactional email provider support)
@@ -68,30 +69,38 @@ The Nexveda Technologies platform is a high-performance, responsive corporate we
 ```text
 Nexveda-Technology/
 ├── index.html           # Main application landing page & layout
-├── styles.css           # Design system tokens, glassmorphism, responsive styles
-├── script.js            # Three.js 3D canvas, GSAP animations, Lenis, UI logic
-├── server.js            # Express server, SQLite/PostgreSQL connectors, email dispatch
+├── dev-server.js        # Express server, security middleware, PostgreSQL/SQLite, email dispatch
 ├── package.json         # Project metadata and dependencies
-├── .env                 # Environment variables configuration (ignored in git)
-├── .gitignore           # Git ignore list
+├── .env.example         # Safe environment variable template (copy to .env locally)
+├── .gitignore           # Git ignore list (.env, node_modules, data/*.db)
+├── .nojekyll            # Disables Jekyll processing on GitHub Pages
 ├── site.webmanifest     # PWA manifest
 ├── robots.txt           # Search crawler directives
 ├── sitemap.xml          # Search engine sitemap
-├── assets/              # Icons, vectors, and font assets
-├── data/                # SQLite database directory (auto-created)
-└── images/              # Logos, team portraits, branding, and preview assets
+├── css/
+│   ├── styles.css       # Main site design system & responsive styles
+│   └── policy.css       # Legal pages styling
+├── js/
+│   └── script.js        # Three.js 3D canvas, GSAP animations, Lenis, UI & form logic
+├── legal/
+│   ├── privacy-policy.html
+│   └── terms-and-conditions.html
+├── assets/
+│   └── resumes/         # Downloadable PDF resumes
+├── data/                # Local SQLite database directory (optional fallback)
+└── images/              # Logos, team portraits, branding, and portfolio assets
 ```
 
 ---
 
 ## 🚀 Getting Started
 
-### Option 1: Static Hosting / Local Preview (No Server Required)
-Simply open `index.html` directly in your favorite modern browser, or launch using VS Code's **Live Server** extension. Contact inquiries will gracefully route via client mailto.
+### Option 1: Static Preview (No Server Required)
+Open `index.html` using a local static server. Contact inquiries fall back to FormSubmit / client `mailto:` when `/api/contact` is unavailable.
 
 ---
 
-### Option 2: Full-Stack Mode (Express + Database + Email Dispatch)
+### Option 2: Full-Stack Mode (Express + PostgreSQL + Email Dispatch)
 
 #### 1. Clone the Repository
 ```bash
@@ -104,13 +113,19 @@ cd Nexveda-Technology
 npm install
 ```
 
-#### 3. Run the Application
+#### 3. Configure Environment Variables
+Copy `.env.example` to `.env` (never commit `.env` with real secrets):
 ```bash
-# Start the server
+cp .env.example .env
+```
+Fill in `DATABASE_URL` (PostgreSQL connection string), `SMTP_PASS`, `ALLOWED_ORIGINS`, and `TRUST_PROXY=true` in `.env` (or in your hosting provider's Environment Variables panel).
+
+#### 4. Run the Application
+```bash
 npm start
 ```
 
-#### 4. Open in Browser
+#### 5. Open in Browser
 Visit [http://localhost:3000](http://localhost:3000) to interact with the application.
 
 ---
