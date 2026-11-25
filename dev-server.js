@@ -368,11 +368,6 @@ app.use(express.urlencoded({ extended: false, limit: '16kb' }));
 // Whitelist static public assets only (never expose root server files or DB directory)
 const PUBLIC_STATIC_FILES = new Set([
   '/index.html',
-  '/styles.css',
-  '/script.js',
-  '/policy.css',
-  '/privacy-policy.html',
-  '/terms-and-conditions.html',
   '/robots.txt',
   '/sitemap.xml',
   '/site.webmanifest'
@@ -388,6 +383,9 @@ app.get(Array.from(PUBLIC_STATIC_FILES), (req, res) => {
 });
 
 const staticOpts = { dotfiles: 'deny', index: false, maxAge: '1h' };
+app.use('/css', express.static(path.join(__dirname, 'css'), staticOpts));
+app.use('/js', express.static(path.join(__dirname, 'js'), staticOpts));
+app.use('/legal', express.static(path.join(__dirname, 'legal'), staticOpts));
 app.use('/images', express.static(path.join(__dirname, 'images'), staticOpts));
 app.use('/assets', express.static(path.join(__dirname, 'assets'), staticOpts));
 

@@ -616,7 +616,7 @@ const sanchitProfileData = {
   phone: "+91 8988113310",
   email: "sanchitsharma217@gmail.com",
   portfolioWebUrl: "https://sanchitsharma217-arch.github.io/Sanchit-Portfolio/",
-  avatarUrl: "assets/images/sanchit-sharma.jpg",
+  avatarUrl: "images/sanchit-sharma.jpg",
   summary: "Creative designer working at the intersection of AI, graphic design, and frontend development. Experienced with AI-generated visuals, Photoshop, thumbnails, and web interfaces, with a focus on original visual concepts and digital experiences. Constantly learning, experimenting, and building across design and web.",
   skillsDesign: ["Photoshop (Compositing & Retouching)", "AI Asset Collection (Generative Artwork)", "YouTube Thumbnail Design", "Visual Branding & Storytelling", "Poster Artwork & Image Manipulation"],
   skillsTech: ["Frontend Web Design", "HTML5 & CSS3", "Dynamic Scroll Animations", "Responsive Interfaces", "Web Graphics Optimization"],
