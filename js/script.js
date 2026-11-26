@@ -1104,14 +1104,6 @@ const caseStudiesData = {
     metric: '🛡️ Anti-Chop Guard, Dynamic S/R Barriers & Real-Time JSON Webhooks',
     tech: ['Pine Script v6', 'TradingView Engine', 'JSON Webhooks', 'Risk & Break-Even Engine', 'Quant Logic']
   },
-  'CloudMint SaaS Portal': {
-    category: 'SaaS Platform',
-    title: 'CloudMint Subscription Management Portal',
-    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80',
-    description: 'Complete user account, onboarding flow, and automated invoice management solution serving over 10,000 active SaaS subscribers.',
-    metric: '🚀 10,000+ Active Users & Automated Stripe Webhooks',
-    tech: ['Next.js', 'Node.js', 'SQLite', 'Tailwind', 'REST API']
-  },
   'Branding, 3D Ads & UI Design Systems': {
     category: 'Branding & Design Systems',
     title: 'Branding, 3D Ads & UI Design Systems',
