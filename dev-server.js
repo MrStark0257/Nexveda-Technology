@@ -368,6 +368,7 @@ app.use(express.urlencoded({ extended: false, limit: '16kb' }));
 // Whitelist static public assets only (never expose root server files or DB directory)
 const PUBLIC_STATIC_FILES = new Set([
   '/index.html',
+  '/favicon.ico',
   '/robots.txt',
   '/sitemap.xml',
   '/site.webmanifest'
